@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgendaRouteImport } from './routes/agenda'
+import { Route as AlertasRouteImport } from './routes/alertas'
+import { Route as IndicadoresRouteImport } from './routes/indicadores'
+import { Route as RecuperacaoRouteImport } from './routes/recuperacao'
+import { Route as SalasRoomIdRouteImport } from './routes/salas.$roomId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertasRoute = AlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndicadoresRoute = IndicadoresRouteImport.update({
+  id: '/indicadores',
+  path: '/indicadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperacaoRoute = RecuperacaoRouteImport.update({
+  id: '/recuperacao',
+  path: '/recuperacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalasRoomIdRoute = SalasRoomIdRouteImport.update({
+  id: '/salas/$roomId',
+  path: '/salas/$roomId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/alertas': typeof AlertasRoute
+  '/indicadores': typeof IndicadoresRoute
+  '/recuperacao': typeof RecuperacaoRoute
+  '/salas/$roomId': typeof SalasRoomIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/alertas': typeof AlertasRoute
+  '/indicadores': typeof IndicadoresRoute
+  '/recuperacao': typeof RecuperacaoRoute
+  '/salas/$roomId': typeof SalasRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
+  '/alertas': typeof AlertasRoute
+  '/indicadores': typeof IndicadoresRoute
+  '/recuperacao': typeof RecuperacaoRoute
+  '/salas/$roomId': typeof SalasRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/agenda'
+    | '/alertas'
+    | '/indicadores'
+    | '/recuperacao'
+    | '/salas/$roomId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/agenda'
+    | '/alertas'
+    | '/indicadores'
+    | '/recuperacao'
+    | '/salas/$roomId'
+  id:
+    | '__root__'
+    | '/'
+    | '/agenda'
+    | '/alertas'
+    | '/indicadores'
+    | '/recuperacao'
+    | '/salas/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendaRoute: typeof AgendaRoute
+  AlertasRoute: typeof AlertasRoute
+  IndicadoresRoute: typeof IndicadoresRoute
+  RecuperacaoRoute: typeof RecuperacaoRoute
+  SalasRoomIdRoute: typeof SalasRoomIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +117,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alertas': {
+      id: '/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AlertasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/indicadores': {
+      id: '/indicadores'
+      path: '/indicadores'
+      fullPath: '/indicadores'
+      preLoaderRoute: typeof IndicadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperacao': {
+      id: '/recuperacao'
+      path: '/recuperacao'
+      fullPath: '/recuperacao'
+      preLoaderRoute: typeof RecuperacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salas/$roomId': {
+      id: '/salas/$roomId'
+      path: '/salas/$roomId'
+      fullPath: '/salas/$roomId'
+      preLoaderRoute: typeof SalasRoomIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendaRoute: AgendaRoute,
+  AlertasRoute: AlertasRoute,
+  IndicadoresRoute: IndicadoresRoute,
+  RecuperacaoRoute: RecuperacaoRoute,
+  SalasRoomIdRoute: SalasRoomIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
