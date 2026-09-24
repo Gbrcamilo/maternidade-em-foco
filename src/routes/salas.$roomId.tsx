@@ -71,7 +71,7 @@ function RoomDetail() {
         return [v.key, [...arr.slice(1), next]];
       })));
       if (Math.random() < 0.3) setFluids((f) => ({ in: f.in + 10, blood: f.blood + Math.round(Math.random() * 8), urine: f.urine + Math.round(Math.random() * 4) }));
-      if (Math.random() < 0.08) setEvents((e) => [{ t: clock().slice(0, 5), m: EVENT_POOL[Math.floor(Math.random() * EVENT_POOL.length)] }, ...e].slice(0, 8));
+      if (Math.random() < 0.08) setEvents((e) => [{ t: clock().slice(0, 5), m: EVENT_POOL[Math.floor(Math.random() * EVENT_POOL.length)] ?? "" }, ...e].slice(0, 8));
     }, 1000);
     return () => clearInterval(id);
   }, [live]);
