@@ -65,7 +65,7 @@ function RoomDetail() {
       if (!r.current || !live) return;
       setTick((t) => t + 1);
       setSeries((prev) => Object.fromEntries(VITALS.map((v) => {
-        const arr = prev[v.key]; const last = arr[arr.length - 1];
+        const arr = prev[v.key] ?? [v.start]; const last = arr[arr.length - 1] ?? v.start;
         const drift = (v.start - last) * 0.15 + (Math.random() - 0.5) * 2 * v.step;
         const next = Math.min(v.max, Math.max(v.min, +(last + drift).toFixed(v.decimals ?? 0)));
         return [v.key, [...arr.slice(1), next]];
@@ -98,7 +98,7 @@ function RoomDetail() {
     </section>
 
     {live && <section className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-      {VITALS.map((v) => { const arr = series[v.key]; const val = arr[arr.length - 1]; const alert = val < v.lo || val > v.hi; return <div key={v.key} className={cn("rounded-md border bg-card p-4 shadow-card", alert ? "border-critical" : "border-border")}>
+      {VITALS.map((v) => { const arr = series[v.key] ?? [v.start]; const val = arr[arr.length - 1] ?? v.start; const alert = val < v.lo || val > v.hi; return <div key={v.key} className={cn("rounded-md border bg-card p-4 shadow-card", alert ? "border-critical" : "border-border")}>
         <div className="flex items-center justify-between"><p className="text-xs font-semibold text-muted-foreground">{v.label}</p><v.icon className={cn("h-4 w-4", alert ? "text-critical" : "text-primary")} /></div>
         <p className={cn("mt-2 font-mono text-3xl font-bold tabular-nums", alert && "text-critical")}>{v.decimals ? val.toFixed(v.decimals) : val}<span className="ml-1 text-xs font-medium text-muted-foreground">{v.unit}</span></p>
         <Spark data={arr} min={v.min} max={v.max} alert={alert} />
