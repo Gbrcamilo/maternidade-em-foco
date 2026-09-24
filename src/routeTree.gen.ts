@@ -14,6 +14,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as IndicadoresRouteImport } from './routes/indicadores'
 import { Route as RecuperacaoRouteImport } from './routes/recuperacao'
+import { Route as TvRouteImport } from './routes/tv'
 import { Route as SalasRoomIdRouteImport } from './routes/salas.$roomId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const RecuperacaoRoute = RecuperacaoRouteImport.update({
   path: '/recuperacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TvRoute = TvRouteImport.update({
+  id: '/tv',
+  path: '/tv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SalasRoomIdRoute = SalasRoomIdRouteImport.update({
   id: '/salas/$roomId',
   path: '/salas/$roomId',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/alertas': typeof AlertasRoute
   '/indicadores': typeof IndicadoresRoute
   '/recuperacao': typeof RecuperacaoRoute
+  '/tv': typeof TvRoute
   '/salas/$roomId': typeof SalasRoomIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/alertas': typeof AlertasRoute
   '/indicadores': typeof IndicadoresRoute
   '/recuperacao': typeof RecuperacaoRoute
+  '/tv': typeof TvRoute
   '/salas/$roomId': typeof SalasRoomIdRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/alertas': typeof AlertasRoute
   '/indicadores': typeof IndicadoresRoute
   '/recuperacao': typeof RecuperacaoRoute
+  '/tv': typeof TvRoute
   '/salas/$roomId': typeof SalasRoomIdRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/alertas'
     | '/indicadores'
     | '/recuperacao'
+    | '/tv'
     | '/salas/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/alertas'
     | '/indicadores'
     | '/recuperacao'
+    | '/tv'
     | '/salas/$roomId'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/alertas'
     | '/indicadores'
     | '/recuperacao'
+    | '/tv'
     | '/salas/$roomId'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   AlertasRoute: typeof AlertasRoute
   IndicadoresRoute: typeof IndicadoresRoute
   RecuperacaoRoute: typeof RecuperacaoRoute
+  TvRoute: typeof TvRoute
   SalasRoomIdRoute: typeof SalasRoomIdRoute
 }
 
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecuperacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tv': {
+      id: '/tv'
+      path: '/tv'
+      fullPath: '/tv'
+      preLoaderRoute: typeof TvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/salas/$roomId': {
       id: '/salas/$roomId'
       path: '/salas/$roomId'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlertasRoute: AlertasRoute,
   IndicadoresRoute: IndicadoresRoute,
   RecuperacaoRoute: RecuperacaoRoute,
+  TvRoute: TvRoute,
   SalasRoomIdRoute: SalasRoomIdRoute,
 }
 export const routeTree = rootRouteImport
