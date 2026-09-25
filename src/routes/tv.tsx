@@ -96,7 +96,7 @@ function TvBoard() {
   </div>;
 }
 
-function RoomTile({ room, tick, vitals, index }: { room: Room; tick: number; vitals?: Record<string, number[]>; index: number }) {
+function RoomTile({ room, tick, vitals, index }: { room: Room; tick: number; vitals?: Record<string, number[]> | undefined; index: number }) {
   const live = room.status === "Em cirurgia";
   const baseSala = 4935 + index * 300;
   return <section className={cn("flex flex-col rounded-xl border p-5 shadow-lg", live ? "border-emerald-500/40 bg-slate-900" : room.status === "Em atraso" ? "border-amber-500/40 bg-slate-900" : "border-slate-800 bg-slate-900/60")}>
