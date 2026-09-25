@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, Bell, CalendarDays, ChartNoAxesCombined, ChevronLeft, DoorOpen, HeartPulse, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Activity, Bell, CalendarDays, ChartNoAxesCombined, ChevronLeft, DoorOpen, HeartPulse, Menu, MonitorPlay, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -9,6 +9,7 @@ const items = [
   { label: "Recuperação (RPA)", to: "/recuperacao", icon: HeartPulse },
   { label: "Alertas", to: "/alertas", icon: Bell, count: 5 },
   { label: "Indicadores", to: "/indicadores", icon: ChartNoAxesCombined },
+  { label: "Painel de TV", to: "/tv", icon: MonitorPlay },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

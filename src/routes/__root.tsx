@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -118,10 +119,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isTv = useRouterState({ select: (s) => s.location.pathname.startsWith("/tv") });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell><Outlet /></AppShell>
+      {isTv ? <Outlet /> : <AppShell><Outlet /></AppShell>}
       <Toaster position="bottom-right" richColors />
     </QueryClientProvider>
   );
