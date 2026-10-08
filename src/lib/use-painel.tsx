@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { getPainel, getSala } from "./maternidade-api";
@@ -40,4 +41,19 @@ export function PageSkeleton({ dark }: { dark?: boolean }) {
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{Array.from({ length: 6 }, (_, i) => <div key={i} className={cn("h-24 rounded-md", b)} />)}</div>
     <div className="grid gap-4 xl:grid-cols-2">{Array.from({ length: 4 }, (_, i) => <div key={i} className={cn("h-48 rounded-md", b)} />)}</div>
   </div>;
+}
+
+export const STALE_SECONDS = 90;
+
+/** Segundos desde atualizado_em (relógio do banco), atualizando a cada segundo. */
+export function useAge(atualizadoEm?: string) {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => { setNow(Date.now()); const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
+  if (!atualizadoEm || now == null) return null;
+  return Math.max(0, Math.floor((now - new Date(atualizadoEm).getTime()) / 1000));
+}
+
+export function StaleNotice({ age, dark }: { age: number | null; dark?: boolean }) {
+  if (age == null || age <= STALE_SECONDS) return null;
+  return <span role="status" className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold", dark ? "bg-amber-500/15 text-amber-300" : "bg-surface-warning text-warning-strong")}><AlertTriangle className="h-3.5 w-3.5" />Dados desatualizados há {Math.floor(age / 60)} min</span>;
 }

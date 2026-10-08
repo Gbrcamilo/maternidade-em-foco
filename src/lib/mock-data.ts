@@ -57,4 +57,5 @@ export type RoomDetail = Room & {
   equipe: { papel: string; nome: string }[];
 };
 export type SalaResponse = { meta: Meta; sala: RoomDetail };
-export type SalaResult = SalaResponse | { naoEncontrada: true };
+export type PainelResult = Painel & { atualizadoEm: string };
+export type SalaResult = (SalaResponse & { atualizadoEm: string }) | { naoEncontrada: true };

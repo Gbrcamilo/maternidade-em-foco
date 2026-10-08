@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Activity, Bell, CalendarDays, ChartNoAxesCombined, ChevronLeft, DoorOpen, HeartPulse, Menu, MonitorPlay, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StaleNotice, STALE_SECONDS, useAge, usePainel } from "@/lib/use-painel";
 
 const items = [
   { label: "Painel de Salas", to: "/", icon: DoorOpen },
@@ -15,6 +16,9 @@ const items = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data, isError } = usePainel();
+  const age = useAge(data?.atualizadoEm);
+  const ok = !!data && !isError && (age == null || age <= STALE_SECONDS);
   const path = useRouterState({ select: (s) => s.location.pathname });
   return <div className="min-h-screen bg-background text-foreground">
     {mobileOpen && <button aria-label="Fechar menu" className="fixed inset-0 z-40 bg-overlay lg:hidden" onClick={() => setMobileOpen(false)} />}
@@ -24,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <button className="hidden h-12 items-center justify-center border-t border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground lg:flex" onClick={() => setCollapsed((v) => !v)} title={collapsed ? "Expandir menu" : "Recolher menu"}>{collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <><PanelLeftClose className="h-5 w-5" /> <span className="ml-2 text-xs">Recolher menu</span></>}</button>
     </aside>
     <div className={cn("min-h-screen transition-[padding] duration-200", collapsed ? "lg:pl-16" : "lg:pl-64")}>
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6"><button onClick={() => setMobileOpen(true)} className="grid h-9 w-9 place-items-center rounded-md border border-border lg:hidden" aria-label="Abrir menu"><Menu className="h-5 w-5" /></button><div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><span className="h-2 w-2 rounded-full bg-success" /><span>Sistema operacional</span><span>•</span><span>Atualizado há 12 segundos</span></div><Link to="/alertas" className="relative grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground hover:text-foreground" aria-label="Ver 5 alertas"><Bell className="h-4 w-4" /><span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-critical px-1 text-[9px] font-bold text-critical-foreground">5</span></Link></header>
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6"><button onClick={() => setMobileOpen(true)} className="grid h-9 w-9 place-items-center rounded-md border border-border lg:hidden" aria-label="Abrir menu"><Menu className="h-5 w-5" /></button><div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><span className={cn("h-2 w-2 rounded-full", ok ? "bg-success" : "bg-warning")} /><span>{data && !isError ? "Sistema operacional" : "Fonte de dados indisponível"}</span>{age != null && <><span>•</span><span>Atualizado há {age < 60 ? `${age} segundos` : `${Math.floor(age / 60)} min`}</span></>}<StaleNotice age={age} /></div><Link to="/alertas" className="relative grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground hover:text-foreground" aria-label="Ver 5 alertas"><Bell className="h-4 w-4" /><span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-critical px-1 text-[9px] font-bold text-critical-foreground">5</span></Link></header>
       <main className="mx-auto min-h-[calc(100vh-7rem)] max-w-[1680px] p-4 md:p-6 xl:p-8">{children}</main>
       <footer className="border-t border-border px-6 py-3 text-center text-xs text-muted-foreground">Ambiente demonstrativo — dados fictícios e mascarados</footer>
     </div>
