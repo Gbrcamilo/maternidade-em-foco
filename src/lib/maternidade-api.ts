@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { Painel, PainelResult, SalaResponse, SalaResult } from "./mock-data";
+import type { Pa, PaResult, Painel, PainelResult, SalaResponse, SalaResult } from "./mock-data";
 
 const UNIDADE = "cmi-bloco-obstetrico";
-type Snapshot = { painel?: Painel; salas?: Record<string, SalaResponse> };
+type Snapshot = { painel?: Painel; pa?: Pa; salas?: Record<string, SalaResponse> };
 
 // Executado apenas dentro dos handlers (servidor). A chave de serviço nunca vai ao navegador.
 async function lerSnapshot(): Promise<{ payload: Snapshot; atualizadoEm: string } | null> {
@@ -38,3 +38,10 @@ export const getSala = createServerFn({ method: "GET" })
     if (!sala) return { naoEncontrada: true };
     return { ...sala, atualizadoEm: snap.atualizadoEm };
   });
+
+export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise<PaResult> => {
+  const snap = await lerSnapshot();
+  if (!snap) throw new Error("Fonte de dados indisponível");
+  if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
+  return { pa: snap.payload.pa, atualizadoEm: snap.atualizadoEm };
+});
