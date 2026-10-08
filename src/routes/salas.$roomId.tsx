@@ -1,19 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Activity, AlertTriangle, BookOpen, ClipboardPlus, Droplets, Headset, HeartPulse, Pause, Play, Radio, ShieldAlert, Syringe, Thermometer, UserRoundCog, Wind } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app-shell";
 import { StatusBadge, TimelineItem } from "@/components/dashboard-ui";
 import { Button } from "@/components/ui/button";
-import { rooms } from "@/lib/mock-data";
+import type { RoomDetail as RoomDetailData } from "@/lib/mock-data";
+import { DataError, PageSkeleton, useSala } from "@/lib/use-painel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/salas/$roomId")({
-  loader: async ({ params }) => {
-    const room = rooms.find((r) => r.id === params.roomId);
-    if (!room) throw notFound();
-    return { room };
-  },
   head: () => ({ meta: [
     { title: "Monitor da Sala em Tempo Real — Centro Cirúrgico Materno" },
     { name: "description", content: "Sinais vitais, tempos, medicações e eventos da paciente em cirurgia, atualizados em tempo real." },
@@ -39,16 +35,20 @@ const VITALS: Vital[] = [
 const MEDS = [
   ["09:52", "Bupivacaína pesada 0,5%", "12,5 mg · raqui"], ["09:52", "Morfina", "80 mcg · raqui"], ["09:58", "Cefazolina", "2 g · EV"], ["10:05", "Fenilefrina", "100 mcg · EV"], ["10:19", "Ocitocina", "5 UI · EV lento"],
 ];
-const TIMELINE = [
-  ["09:28", "Admissão no bloco", "done", "Registrado"], ["09:36", "Identificação conferida", "done", "Duas identificações confirmadas"], ["09:43", "Checklist de cirurgia", "done", "Checklist completo"], ["09:52", "Início da anestesia", "done", "Raquianestesia"], ["10:03", "Incisão cirúrgica", "done", "Procedimento iniciado"], ["10:18", "Nascimento", "attention", "RN vivo · Apgar 8/9 · aguardando confirmação"], ["--:--", "Término da cirurgia", "pending", "Pendente"], ["--:--", "Saída da sala", "pending", "Pendente"], ["--:--", "Entrada na RPA", "pending", "Pendente"],
-] as const;
 const EVENT_POOL = ["PA não invasiva aferida", "Balanço hídrico atualizado", "Contagem de compressas conferida", "Sinais vitais registrados pela anestesia", "Banco de sangue: prova cruzada em andamento", "Ocitocina em infusão contínua", "Aspiração: volume atualizado"];
 
 const fmt = (s: number) => [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, "0")).join(":");
 const clock = () => new Date().toLocaleTimeString("pt-BR");
 
 function RoomDetail() {
-  const { room } = Route.useLoaderData();
+  const { roomId } = Route.useParams();
+  const { data, isPending, isError } = useSala(roomId);
+  if (isPending) return <PageSkeleton />;
+  if (!data) return <div><PageHeader title="Monitor da sala" subtitle="—" back="/" /><DataError /></div>;
+  return <>{isError && <div className="mb-4"><DataError /></div>}<RoomLive key={data.sala.id} room={data.sala} /></>;
+}
+
+function RoomLive({ room }: { room: RoomDetailData }) {
   const live = room.status === "Em cirurgia";
   const [running, setRunning] = useState(true);
   const [tick, setTick] = useState(0);
@@ -82,7 +82,7 @@ function RoomDetail() {
 
   return <div>
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <PageHeader title={`${room.name} — ${room.procedure}`} subtitle={`Paciente ${room.patient} · 29 anos · IG 38s + 4d · ${room.record} · ${room.priority}`} back="/" />
+      <PageHeader title={`${room.name} — ${room.procedure}`} subtitle={[`Paciente ${room.patient}`, room.idade, room.idadeGestacional && `IG ${room.idadeGestacional}`, room.record, room.priority].filter(Boolean).join(" · ")} back="/" />
       <div className="flex items-center gap-2">
         {live && <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold", running ? "bg-surface-positive text-success-strong" : "bg-muted text-muted-foreground")}><Radio className={cn("h-3.5 w-3.5", running && "animate-pulse")} />{running ? "AO VIVO" : "PAUSADO"}</span>}
         <span className="font-mono text-sm tabular-nums text-muted-foreground">{now}</span>
@@ -108,14 +108,14 @@ function RoomDetail() {
 
     <div className="grid gap-5 xl:grid-cols-[1fr_1.4fr]">
       <div className="space-y-5">
-        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="mb-5 font-bold">Linha do tempo</h2><div className="timeline-line">{TIMELINE.map(([time, title, state, detail]) => <TimelineItem key={title} time={time} title={title} state={state} detail={detail} />)}</div></section>
+        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="mb-5 font-bold">Linha do tempo</h2><div className="timeline-line">{room.timeline.map((t) => <TimelineItem key={t.title} time={t.time} title={t.title} state={t.state} detail={t.detail} />)}</div></section>
         <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center justify-between"><h2 className="font-bold">Eventos em tempo real</h2>{live && running && <span className="h-2 w-2 animate-pulse rounded-full bg-success" />}</div><ul className="mt-3 divide-y divide-border text-sm">{events.map((e, i) => <li key={i + e.t + e.m} className="flex gap-3 py-2"><span className="font-mono text-xs text-muted-foreground">{e.t}</span><span>{e.m}</span></li>)}</ul></section>
       </div>
       <div className="space-y-5">
         {live && <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="font-bold">Balanço hídrico</h2><div className="mt-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">{[["Infundido", fluids.in], ["Sangramento", fluids.blood], ["Diurese", fluids.urine], ["Balanço", balance]].map(([l, v]) => <div key={l}><p className="text-xs text-muted-foreground">{l}</p><p className={cn("mt-1 font-mono text-xl font-bold tabular-nums", l === "Sangramento" && Number(v) > 800 && "text-critical")}>{Number(v) > 0 && l === "Balanço" ? "+" : ""}{v} mL</p></div>)}</div></section>}
         <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center gap-2"><Syringe className="h-5 w-5 text-primary" /><h2 className="font-bold">Medicações administradas</h2></div><ul className="mt-3 divide-y divide-border text-sm">{(live ? MEDS : []).map(([t, n, d]) => <li key={n} className="grid grid-cols-[52px_1fr_auto] gap-3 py-2"><span className="font-mono text-xs text-muted-foreground">{t}</span><span className="font-semibold">{n}</span><span className="text-xs text-muted-foreground">{d}</span></li>)}{!live && <li className="py-2 text-muted-foreground">Nenhuma medicação registrada.</li>}</ul></section>
-        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="font-bold">Equipe atual</h2><div className="mt-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-3">{[["Cirurgiã", "Dra. A. N."], ["Auxiliar", "Dr. C. P."], ["Anestesista", "Dr. B. R."], ["Instrumentadora", "E. S."], ["Circulante", "M. T."], ["Neonatologia", "Dra. D. L."]].map(([role, name]) => <div key={role}><p className="text-xs text-muted-foreground">{role}</p><p className="mt-1 font-semibold">{name}</p></div>)}</div></section>
-        <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-primary" /><h2 className="font-bold">Resumo clínico autorizado</h2></div><div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm md:grid-cols-3">{[["Alergias", "Não informadas"], ["Grupo sanguíneo", "O positivo"], ["Jejum", "Confirmado · 8h"], ["Consentimento", "Registrado"], ["Exames relevantes", "Hb 12,1 · Plaq. 218 mil"], ["Precauções", "Padrão"]].map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold">{value}</p></div>)}</div></section>
+        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="font-bold">Equipe atual</h2><div className="mt-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-3">{room.equipe.map(({ role, name }) => <div key={role}><p className="text-xs text-muted-foreground">{role}</p><p className="mt-1 font-semibold">{name}</p></div>)}</div></section>
+        <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-primary" /><h2 className="font-bold">Resumo clínico autorizado</h2></div><div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm md:grid-cols-3">{[["Alergias", room.alergias ?? "Não informadas"], ["Grupo sanguíneo", "O positivo"], ["Jejum", "Confirmado · 8h"], ["Consentimento", "Registrado"], ["Exames relevantes", "Hb 12,1 · Plaq. 218 mil"], ["Precauções", "Padrão"]].map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold">{value}</p></div>)}</div></section>
         <section className="rounded-md border border-warning bg-surface-warning p-4"><div className="flex gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning-strong" /><div><h2 className="font-bold text-warning-strong">Alertas e pendências</h2><ul className="mt-2 space-y-2 text-sm text-warning-strong"><li>{room.note}.</li>{live && <li>Registro de nascimento ainda não confirmado.</li>}</ul></div></div></section>
       </div>
     </div>
