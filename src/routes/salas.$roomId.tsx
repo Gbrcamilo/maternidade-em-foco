@@ -18,7 +18,7 @@ export const Route = createFileRoute("/salas/$roomId")({
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
   ] }),
   component: RoomDetail,
-  errorComponent: ({ error }) => <div role="alert" className="p-6">{error.message}</div>,
+  errorComponent: ({ error }) => <div role="alert" className="p-6">{error instanceof Error ? error.message : "Erro inesperado"}</div>,
   notFoundComponent: () => <div className="p-6">Sala não encontrada.</div>,
 });
 
