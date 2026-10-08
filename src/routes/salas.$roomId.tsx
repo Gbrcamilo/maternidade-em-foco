@@ -45,6 +45,7 @@ function RoomDetail() {
   const { data, isPending, isError } = useSala(roomId);
   if (isPending) return <PageSkeleton />;
   if (!data) return <div><PageHeader title="Monitor da sala" subtitle="—" back="/" /><DataError /></div>;
+  if ("naoEncontrada" in data) return <div className="p-6">Sala não encontrada.</div>;
   return <>{isError && <div className="mb-4"><DataError /></div>}<RoomLive key={data.sala.id} room={data.sala} /></>;
 }
 
@@ -77,12 +78,12 @@ function RoomLive({ room }: { room: RoomDetailData }) {
   }, [live]);
 
   const demo = (label: string) => { toast.success(`${label}: ação simulada com sucesso.`); setEvents((e) => [{ t: clock().slice(0, 5), m: label }, ...e].slice(0, 8)); };
-  const base = { sala: 4935, anest: 3492, cir: 2858 };
+  const base = { anest: 3492, cir: 2858 };
   const balance = fluids.in - fluids.blood - fluids.urine;
 
   return <div>
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <PageHeader title={`${room.name} — ${room.procedure}`} subtitle={[`Paciente ${room.patient}`, room.idade, room.idadeGestacional && `IG ${room.idadeGestacional}`, room.record, room.priority].filter(Boolean).join(" · ")} back="/" />
+      <PageHeader title={`${room.name} — ${room.procedure}`} subtitle={`Paciente ${room.patient} · ${room.record} · ${room.priority}`} back="/" />
       <div className="flex items-center gap-2">
         {live && <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold", running ? "bg-surface-positive text-success-strong" : "bg-muted text-muted-foreground")}><Radio className={cn("h-3.5 w-3.5", running && "animate-pulse")} />{running ? "AO VIVO" : "PAUSADO"}</span>}
         <span className="font-mono text-sm tabular-nums text-muted-foreground">{now}</span>
@@ -94,7 +95,7 @@ function RoomLive({ room }: { room: RoomDetailData }) {
     {!live && <section className="mb-5 rounded-md border border-warning bg-surface-warning p-4 text-sm text-warning-strong"><AlertTriangle className="mr-2 inline h-4 w-4" />Esta sala não está em cirurgia no momento ({room.status}). Monitoramento em tempo real indisponível — {room.note}.</section>}
 
     <section className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {[["Tempo em sala", live ? fmt(base.sala + tick) : room.elapsed], ["Tempo de anestesia", live ? fmt(base.anest + tick) : "—"], ["Tempo cirúrgico", live ? fmt(base.cir + tick) : "—"], ["Meta de término", room.id === "02" ? "11:08" : "—"]].map(([label, value]) => <div key={label} className="rounded-md border border-border bg-card p-4 shadow-card"><p className="text-xs font-semibold text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-bold tabular-nums">{value}</p></div>)}
+      {[["Tempo em sala", live ? fmt(room.emSalaMin * 60 + tick) : room.elapsed], ["Tempo de anestesia", live ? fmt(base.anest + tick) : "—"], ["Tempo cirúrgico", live ? fmt(base.cir + tick) : "—"], ["Meta de término", room.id === "02" ? "11:08" : "—"]].map(([label, value]) => <div key={label} className="rounded-md border border-border bg-card p-4 shadow-card"><p className="text-xs font-semibold text-muted-foreground">{label}</p><p className="mt-2 font-mono text-2xl font-bold tabular-nums">{value}</p></div>)}
     </section>
 
     {live && <section className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
@@ -108,15 +109,15 @@ function RoomLive({ room }: { room: RoomDetailData }) {
 
     <div className="grid gap-5 xl:grid-cols-[1fr_1.4fr]">
       <div className="space-y-5">
-        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="mb-5 font-bold">Linha do tempo</h2><div className="timeline-line">{room.timeline.map((t) => <TimelineItem key={t.title} time={t.time} title={t.title} state={t.state} detail={t.detail} />)}</div></section>
+        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="mb-5 font-bold">Linha do tempo</h2><div className="timeline-line">{room.linhaDoTempo.map((t) => <TimelineItem key={t.titulo} time={t.horario} title={t.titulo} state={t.estado} detail={t.estado === "done" ? "Concluído" : t.estado === "attention" ? "Requer atenção" : "Pendente"} />)}</div></section>
         <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center justify-between"><h2 className="font-bold">Eventos em tempo real</h2>{live && running && <span className="h-2 w-2 animate-pulse rounded-full bg-success" />}</div><ul className="mt-3 divide-y divide-border text-sm">{events.map((e, i) => <li key={i + e.t + e.m} className="flex gap-3 py-2"><span className="font-mono text-xs text-muted-foreground">{e.t}</span><span>{e.m}</span></li>)}</ul></section>
       </div>
       <div className="space-y-5">
         {live && <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="font-bold">Balanço hídrico</h2><div className="mt-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">{[["Infundido", fluids.in], ["Sangramento", fluids.blood], ["Diurese", fluids.urine], ["Balanço", balance]].map(([l, v]) => <div key={l}><p className="text-xs text-muted-foreground">{l}</p><p className={cn("mt-1 font-mono text-xl font-bold tabular-nums", l === "Sangramento" && Number(v) > 800 && "text-critical")}>{Number(v) > 0 && l === "Balanço" ? "+" : ""}{v} mL</p></div>)}</div></section>}
         <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center gap-2"><Syringe className="h-5 w-5 text-primary" /><h2 className="font-bold">Medicações administradas</h2></div><ul className="mt-3 divide-y divide-border text-sm">{(live ? MEDS : []).map(([t, n, d]) => <li key={n} className="grid grid-cols-[52px_1fr_auto] gap-3 py-2"><span className="font-mono text-xs text-muted-foreground">{t}</span><span className="font-semibold">{n}</span><span className="text-xs text-muted-foreground">{d}</span></li>)}{!live && <li className="py-2 text-muted-foreground">Nenhuma medicação registrada.</li>}</ul></section>
-        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="font-bold">Equipe atual</h2><div className="mt-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-3">{room.equipe.map(({ role, name }) => <div key={role}><p className="text-xs text-muted-foreground">{role}</p><p className="mt-1 font-semibold">{name}</p></div>)}</div></section>
-        <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-primary" /><h2 className="font-bold">Resumo clínico autorizado</h2></div><div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm md:grid-cols-3">{[["Alergias", room.alergias ?? "Não informadas"], ["Grupo sanguíneo", "O positivo"], ["Jejum", "Confirmado · 8h"], ["Consentimento", "Registrado"], ["Exames relevantes", "Hb 12,1 · Plaq. 218 mil"], ["Precauções", "Padrão"]].map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold">{value}</p></div>)}</div></section>
-        <section className="rounded-md border border-warning bg-surface-warning p-4"><div className="flex gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning-strong" /><div><h2 className="font-bold text-warning-strong">Alertas e pendências</h2><ul className="mt-2 space-y-2 text-sm text-warning-strong"><li>{room.note}.</li>{live && <li>Registro de nascimento ainda não confirmado.</li>}</ul></div></div></section>
+        <section className="rounded-md border border-border bg-card p-5 shadow-card"><h2 className="font-bold">Equipe atual</h2><div className="mt-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-3">{room.equipe.map(({ papel: role, nome: name }) => <div key={role}><p className="text-xs text-muted-foreground">{role}</p><p className="mt-1 font-semibold">{name}</p></div>)}</div></section>
+        <section className="rounded-md border border-border bg-card p-5 shadow-card"><div className="flex items-center gap-2"><ShieldAlert className="h-5 w-5 text-primary" /><h2 className="font-bold">Resumo clínico autorizado</h2></div><div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4 text-sm md:grid-cols-3">{["Alergias", "Grupo sanguíneo", "Jejum", "Consentimento", "Exames relevantes", "Precauções"].map((label) => [label, "Não disponível"] as const).map(([label, value]) => <div key={label}><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 font-semibold">{value}</p></div>)}</div></section>
+        <section className="rounded-md border border-warning bg-surface-warning p-4"><div className="flex gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning-strong" /><div><h2 className="font-bold text-warning-strong">Alertas e pendências</h2><ul className="mt-2 space-y-2 text-sm text-warning-strong"><li>{room.note}.</li>{room.pendencias.map((p) => <li key={p}>{p}</li>)}</ul></div></div></section>
       </div>
     </div>
 

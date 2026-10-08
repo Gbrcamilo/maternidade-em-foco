@@ -21,6 +21,12 @@ export function formatGerado(iso: string, withTime = true) {
   return `${cap} · ${d.toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" })}`;
 }
 
+export function fmtMin(min: number | null | undefined) {
+  if (min == null || Number.isNaN(min)) return "—";
+  const m = Math.round(min);
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}h${String(m % 60).padStart(2, "0")}`;
+}
+
 export function DataError({ dark }: { dark?: boolean }) {
   return <div role="alert" className={cn("flex items-center gap-2 rounded-md border p-4 text-sm font-semibold", dark ? "border-amber-500/40 bg-amber-500/10 text-amber-300" : "border-warning bg-surface-warning text-warning-strong")}>
     <AlertTriangle className="h-4 w-4 shrink-0" />Fonte de dados indisponível, tentando novamente
