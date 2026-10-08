@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Activity, AlertTriangle, Bell, ChevronLeft, Clock3, Droplets, HeartPulse, Maximize, Radio, Wind } from "lucide-react";
 import type { Room } from "@/lib/mock-data";
-import { DataError, PageSkeleton, usePainel } from "@/lib/use-painel";
+import { DataError, PageSkeleton, StaleNotice, useAge, usePainel } from "@/lib/use-painel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/tv")({
@@ -39,6 +39,7 @@ function TvBoard() {
   const [now, setNow] = useState("");
   const [tick, setTick] = useState(0);
   const { data, isPending, isError } = usePainel();
+  const age = useAge(data?.atualizadoEm);
   const rooms = data?.salas ?? [];
   const alerts = data?.alertas ?? [];
   const liveRef = useRef<Room[]>([]);
@@ -75,6 +76,7 @@ function TvBoard() {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        <StaleNotice age={age} dark />
         <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-4 py-1.5 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/40"><Radio className="h-4 w-4 animate-pulse" />AO VIVO</span>
         <span className="hidden items-center gap-2 font-mono text-3xl font-bold tabular-nums md:flex"><Clock3 className="h-6 w-6 text-slate-400" />{now}</span>
         <button onClick={fullscreen} className="grid h-10 w-10 place-items-center rounded-md border border-slate-700 text-slate-400 hover:text-slate-100" aria-label="Tela cheia"><Maximize className="h-5 w-5" /></button>

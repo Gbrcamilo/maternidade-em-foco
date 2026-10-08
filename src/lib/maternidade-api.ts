@@ -1,20 +1,30 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { Painel, SalaResponse, SalaResult } from "./mock-data";
+import type { Painel, PainelResult, SalaResponse, SalaResult } from "./mock-data";
 
-async function callApi<T>(path: string, allow404 = false): Promise<T | null> {
-  const base = process.env['MATERNIDADE_API_URL'];
-  const key = process.env['MATERNIDADE_API_KEY'];
-  if (!base || !key) throw new Error("Fonte de dados não configurada");
-  const res = await fetch(`${base.replace(/\/$/, "")}${path}`, { headers: { "x-api-key": key, accept: "application/json" } });
-  if (allow404 && res.status === 404) return null;
-  if (!res.ok) {
-    console.error(`maternidade-api ${path} respondeu ${res.status}`);
-    throw new Error("Fonte de dados indisponível");
+const UNIDADE = "cmi-bloco-obstetrico";
+type Snapshot = { painel?: Painel; salas?: Record<string, SalaResponse> };
+
+// Executado apenas dentro dos handlers (servidor). A chave de serviço nunca vai ao navegador.
+async function lerSnapshot(): Promise<{ payload: Snapshot; atualizadoEm: string } | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("painel_snapshot")
+    .select("payload, atualizado_em")
+    .eq("unidade", UNIDADE)
+    .maybeSingle();
+  if (error) {
+    console.error("painel_snapshot: falha de leitura", error.code);
+    return null;
   }
-  return (await res.json()) as T;
+  if (!data) return null;
+  return { payload: (data.payload ?? {}) as Snapshot, atualizadoEm: data.atualizado_em };
 }
 
-export const getPainel = createServerFn({ method: "GET" }).handler(async () => (await callApi<Painel>("/api/v1/painel"))!);
+export const getPainel = createServerFn({ method: "GET" }).handler(async (): Promise<PainelResult> => {
+  const snap = await lerSnapshot();
+  if (!snap?.payload.painel) throw new Error("Fonte de dados indisponível");
+  return { ...snap.payload.painel, atualizadoEm: snap.atualizadoEm };
+});
 
 export const getSala = createServerFn({ method: "GET" })
   .inputValidator((input: { id: string }) => {
@@ -22,6 +32,9 @@ export const getSala = createServerFn({ method: "GET" })
     return input;
   })
   .handler(async ({ data }): Promise<SalaResult> => {
-    const r = await callApi<SalaResponse>(`/api/v1/salas/${encodeURIComponent(data.id)}`, true);
-    return r ?? { naoEncontrada: true };
+    const snap = await lerSnapshot();
+    if (!snap) throw new Error("Fonte de dados indisponível");
+    const sala = snap.payload.salas?.[data.id];
+    if (!sala) return { naoEncontrada: true };
+    return { ...sala, atualizadoEm: snap.atualizadoEm };
   });
