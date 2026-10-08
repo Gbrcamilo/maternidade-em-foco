@@ -61,7 +61,7 @@ export type PainelResult = Painel & { atualizadoEm: string };
 export type SalaResult = (SalaResponse & { atualizadoEm: string }) | { naoEncontrada: true };
 
 // ---- Pronto Atendimento (payload.pa) ----
-export type CorRisco = "Vermelho" | "Laranja" | "Amarelo" | "Verde" | "Azul" | "Sem cor";
+export type CorRisco = "Vermelho" | "Laranja" | "Amarelo" | "Verde" | "Azul" | "Branco" | "Sem cor";
 export type PorCor = Record<CorRisco, number>;
 export type PaPaciente = {
   id: string; senha: string; atendimento: string; paciente: string; especialidade: string; fila: string; origem: string;

@@ -21,17 +21,18 @@ export const Route = createFileRoute("/pa")({
   component: PaPage,
 });
 
-const CORES: CorRisco[] = ["Vermelho", "Laranja", "Amarelo", "Verde", "Azul", "Sem cor"];
+const CORES: CorRisco[] = ["Vermelho", "Laranja", "Amarelo", "Verde", "Azul", "Branco", "Sem cor"];
 const corChip: Record<CorRisco, string> = {
   Vermelho: "bg-critical text-critical-foreground",
   Laranja: "bg-warning text-critical-foreground",
   Amarelo: "bg-caution text-foreground",
   Verde: "bg-success text-critical-foreground",
   Azul: "bg-cleaning text-critical-foreground",
+  Branco: "bg-background text-foreground border border-border",
   "Sem cor": "bg-muted text-muted-foreground",
 };
-const corBar: Record<CorRisco, string> = { Vermelho: "bg-critical", Laranja: "bg-warning", Amarelo: "bg-caution", Verde: "bg-success", Azul: "bg-cleaning", "Sem cor": "bg-muted-foreground/40" };
-const corRow: Record<CorRisco, string> = { Vermelho: "bg-critical/10", Laranja: "bg-warning/15", Amarelo: "bg-caution/20", Verde: "bg-success/10", Azul: "bg-cleaning/15", "Sem cor": "bg-muted" };
+const corBar: Record<CorRisco, string> = { Vermelho: "bg-critical", Laranja: "bg-warning", Amarelo: "bg-caution", Verde: "bg-success", Azul: "bg-cleaning", Branco: "bg-muted-foreground/25", "Sem cor": "bg-muted-foreground/40" };
+const corRow: Record<CorRisco, string> = { Vermelho: "bg-critical/10", Laranja: "bg-warning/15", Amarelo: "bg-caution/20", Verde: "bg-success/10", Azul: "bg-cleaning/15", Branco: "bg-muted", "Sem cor": "bg-muted" };
 const SITUACOES = ["Todos", "Aguardando", "Em curso", "Finalizado", "Fora do SLA"] as const;
 type ColKey = "senha" | "paciente" | "especialidade" | "cor" | "situacao" | "chegada" | "esperaClassifMin" | "esperaAtendMin" | "tempoTotalMin" | "sla";
 
@@ -67,7 +68,7 @@ function PaPage() {
       (esp === "Todas" || p.especialidade === esp) &&
       (cor === "Todas" || p.cor === cor) &&
       (sit === "Todos" || (sit === "Aguardando" && p.grupo === "aguardando") || (sit === "Em curso" && p.grupo === "em-curso") || (sit === "Finalizado" && p.grupo === "finalizado") || (sit === "Fora do SLA" && p.foraSla)) &&
-      (!term || norm(p.senha).includes(term) || norm(p.paciente).includes(term)));
+      (!term || norm(p.senha).includes(term) || norm(p.paciente).includes(term) || norm(p.atendimento).includes(term)));
     if (!sort) return list.sort(defaultSort);
     const val = (p: PaPaciente): string | number => {
       switch (sort.key) {
@@ -123,8 +124,8 @@ function PaPage() {
     <section className="space-y-3">
       <h2 className="text-lg font-bold">Distribuição por risco</h2>
       <div className="flex flex-wrap gap-2">
-        {CORES.filter((c) => c !== "Sem cor" || t.porCor["Sem cor"] > 0).map((c) => <button key={c} onClick={() => setCor((v) => (v === c ? "Todas" : c))} aria-pressed={cor === c} className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition", corChip[c], cor !== "Todas" && cor !== c && "opacity-40", cor === c && "ring-2 ring-foreground ring-offset-2 ring-offset-background")}>
-          {c}{pa.limites[c] != null && <span className="font-medium opacity-90">({pa.limites[c]} min)</span>}<span className="rounded-full bg-background/30 px-2 tabular-nums">{t.porCor[c] ?? 0}</span>
+        {CORES.filter((c) => (c !== "Sem cor" && c !== "Branco") || (t.porCor[c] ?? 0) > 0).map((c) => <button key={c} onClick={() => setCor((v) => (v === c ? "Todas" : c))} aria-pressed={cor === c} className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition", corChip[c], cor !== "Todas" && cor !== c && "opacity-40", cor === c && "ring-2 ring-foreground ring-offset-2 ring-offset-background")}>
+          {c}{c !== "Branco" && pa.limites[c] != null && <span className="font-medium opacity-90">({pa.limites[c]} min)</span>}<span className="rounded-full bg-background/30 px-2 tabular-nums">{t.porCor[c] ?? 0}</span>
         </button>)}
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -142,7 +143,7 @@ function PaPage() {
         <label className="text-xs font-semibold text-muted-foreground">Especialidade<select className="select-field mt-1 block" value={esp} onChange={(e) => setEsp(e.target.value)}><option>Todas</option>{pa.especialidades.map((e) => <option key={e.especialidade}>{e.especialidade}</option>)}</select></label>
         <label className="text-xs font-semibold text-muted-foreground">Risco<select className="select-field mt-1 block" value={cor} onChange={(e) => setCor(e.target.value as CorRisco | "Todas")}><option>Todas</option>{CORES.map((c) => <option key={c}>{c}</option>)}</select></label>
         <label className="text-xs font-semibold text-muted-foreground">Situação<select className="select-field mt-1 block" value={sit} onChange={(e) => setSit(e.target.value as (typeof SITUACOES)[number])}>{SITUACOES.map((s) => <option key={s}>{s}</option>)}</select></label>
-        <label className="text-xs font-semibold text-muted-foreground">Buscar<span className="relative mt-1 block"><Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Senha ou nome" className="select-field pl-8" /></span></label>
+        <label className="text-xs font-semibold text-muted-foreground">Buscar<span className="relative mt-1 block"><Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Senha, nome ou atendimento" className="select-field pl-8" /></span></label>
         <button onClick={exportCsv} className="ml-auto inline-flex h-10 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold hover:bg-muted"><Download className="h-4 w-4" />Exportar CSV</button>
       </div>
       <div className="overflow-x-auto rounded-md border border-border bg-card shadow-card">
