@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import { Check } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import type { RoomStatus } from "@/lib/mock-data";
 
@@ -24,7 +23,6 @@ export function Filters({ options, active, onChange }: { options: string[]; acti
 }
 
 
-function Info({ label, value }: { label: string; value: string }) { return <div><p className="text-xs text-muted-foreground">{label}</p><p className="mt-0.5 font-semibold text-foreground">{value}</p></div>; }
 
 export function TimelineItem({ time, title, state, detail }: { time: string; title: string; state: "done" | "pending" | "attention"; detail: string }) {
   return <div className="relative grid grid-cols-[52px_24px_1fr] gap-3 pb-5 last:pb-0"><span className="pt-0.5 font-mono text-xs font-bold text-muted-foreground">{time}</span><span className={cn("relative z-10 grid h-6 w-6 place-items-center rounded-full border-2 bg-card", state === "done" ? "border-success text-success" : state === "attention" ? "border-warning text-warning-strong" : "border-border text-muted-foreground")}>{state === "done" ? <Check className="h-3.5 w-3.5" /> : <span className="h-1.5 w-1.5 rounded-full bg-current" />}</span><div><p className="text-sm font-semibold text-foreground">{title}</p><p className="mt-0.5 text-xs text-muted-foreground">{detail}</p></div></div>;
