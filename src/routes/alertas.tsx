@@ -9,7 +9,7 @@ export const Route = createFileRoute("/alertas")({ head: () => ({ meta: [{ title
 
 function Alertas() {
   const [filter, setFilter] = useState("Todos");
-  const [viewed, setViewed] = useState<number[]>([]);
+  const [viewed, setViewed] = useState<string[]>([]);
   const { data, isPending, isError } = usePainel();
   const header = <PageHeader title="Alertas Operacionais" subtitle="Pendências que requerem acompanhamento da coordenação" />;
   if (isPending) return <PageSkeleton />;
