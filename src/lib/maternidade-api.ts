@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import type { Painel, SalaResponse } from "./mock-data";
 
 async function callApi<T>(path: string): Promise<T> {
-  const base = process.env.MATERNIDADE_API_URL;
-  const key = process.env.MATERNIDADE_API_KEY;
+  const base = process.env['MATERNIDADE_API_URL'];
+  const key = process.env['MATERNIDADE_API_KEY'];
   if (!base || !key) throw new Error("Fonte de dados não configurada");
   const res = await fetch(`${base.replace(/\/$/, "")}${path}`, { headers: { "x-api-key": key, accept: "application/json" } });
   if (!res.ok) {
