@@ -72,7 +72,7 @@ export type PaPaciente = {
   slaMin: number | null; foraSla: boolean; excessoMin: number;
 };
 export type Pa = {
-  meta?: { geradoEm?: string; fonte?: string; mascarado?: boolean }; disponivel: boolean;
+  meta?: { geradoEm?: string; fonte?: string; mascarado?: boolean }; disponivel: boolean; nomeCompleto?: boolean;
   totais: { total: number; aguardando: number; emCurso: number; finalizados: number; foraSla: number; porCor: PorCor };
   limites: Partial<Record<CorRisco, number>>;
   especialidades: { especialidade: string; total: number; porCor: PorCor; foraSla: number }[];

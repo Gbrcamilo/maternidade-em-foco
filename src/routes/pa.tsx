@@ -42,6 +42,7 @@ function slaText(p: PaPaciente) {
 }
 const horaSP = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
 const hm = (s: string) => (/^\d{2}:\d{2}$/.test(s) ? s : "99:99");
+const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
 function defaultSort(a: PaPaciente, b: PaPaciente) {
   if (a.foraSla !== b.foraSla) return a.foraSla ? -1 : 1;
@@ -61,12 +62,12 @@ function PaPage() {
   const pa = data && !data.aguardando ? data.pa : null;
   const rows = useMemo(() => {
     if (!pa?.disponivel) return [];
-    const term = q.trim().toLowerCase();
+    const term = norm(q.trim());
     const list = pa.pacientes.filter((p) =>
       (esp === "Todas" || p.especialidade === esp) &&
       (cor === "Todas" || p.cor === cor) &&
       (sit === "Todos" || (sit === "Aguardando" && p.grupo === "aguardando") || (sit === "Em curso" && p.grupo === "em-curso") || (sit === "Finalizado" && p.grupo === "finalizado") || (sit === "Fora do SLA" && p.foraSla)) &&
-      (!term || p.senha.toLowerCase().includes(term) || p.paciente.toLowerCase().includes(term)));
+      (!term || norm(p.senha).includes(term) || norm(p.paciente).includes(term)));
     if (!sort) return list.sort(defaultSort);
     const val = (p: PaPaciente): string | number => {
       switch (sort.key) {
@@ -141,7 +142,7 @@ function PaPage() {
         <label className="text-xs font-semibold text-muted-foreground">Especialidade<select className="select-field mt-1 block" value={esp} onChange={(e) => setEsp(e.target.value)}><option>Todas</option>{pa.especialidades.map((e) => <option key={e.especialidade}>{e.especialidade}</option>)}</select></label>
         <label className="text-xs font-semibold text-muted-foreground">Risco<select className="select-field mt-1 block" value={cor} onChange={(e) => setCor(e.target.value as CorRisco | "Todas")}><option>Todas</option>{CORES.map((c) => <option key={c}>{c}</option>)}</select></label>
         <label className="text-xs font-semibold text-muted-foreground">Situação<select className="select-field mt-1 block" value={sit} onChange={(e) => setSit(e.target.value as (typeof SITUACOES)[number])}>{SITUACOES.map((s) => <option key={s}>{s}</option>)}</select></label>
-        <label className="text-xs font-semibold text-muted-foreground">Buscar<span className="relative mt-1 block"><Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Senha ou iniciais" className="select-field pl-8" /></span></label>
+        <label className="text-xs font-semibold text-muted-foreground">Buscar<span className="relative mt-1 block"><Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Senha ou nome" className="select-field pl-8" /></span></label>
         <button onClick={exportCsv} className="ml-auto inline-flex h-10 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-semibold hover:bg-muted"><Download className="h-4 w-4" />Exportar CSV</button>
       </div>
       <div className="overflow-x-auto rounded-md border border-border bg-card shadow-card">
@@ -151,7 +152,7 @@ function PaPage() {
             {rows.length === 0 && <tr><td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">Nenhum paciente para os filtros selecionados.</td></tr>}
             {rows.map((p) => <tr key={p.id} className={cn("border-t border-border", p.foraSla && p.grupo !== "finalizado" && corRow[p.cor])}>
               <td className="px-3 py-2.5 font-mono font-bold">{p.senha}</td>
-              <td className="px-3 py-2.5 font-semibold">{p.paciente}</td>
+              <td className="whitespace-normal break-words px-3 py-2.5 font-semibold">{p.paciente}</td>
               <td className="px-3 py-2.5 font-mono text-muted-foreground">{p.atendimento}</td>
               <td className="px-3 py-2.5">{p.especialidade}</td>
               <td className="px-3 py-2.5"><span className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-bold", corChip[p.cor])}>{p.cor}</span></td>
