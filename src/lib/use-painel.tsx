@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
-import { getPainel, getSala } from "./maternidade-api";
+import { getPa, getPainel, getSala } from "./maternidade-api";
 import { cn } from "./utils";
 
 export const REFRESH_MS = 15000;
 
 export function usePainel() {
   return useQuery({ queryKey: ["painel"], queryFn: () => getPainel(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
+}
+
+export function usePa() {
+  return useQuery({ queryKey: ["pa"], queryFn: () => getPa(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
 }
 
 export function useSala(id: string) {

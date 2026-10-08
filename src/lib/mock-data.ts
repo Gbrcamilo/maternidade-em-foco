@@ -59,3 +59,23 @@ export type RoomDetail = Room & {
 export type SalaResponse = { meta: Meta; sala: RoomDetail };
 export type PainelResult = Painel & { atualizadoEm: string };
 export type SalaResult = (SalaResponse & { atualizadoEm: string }) | { naoEncontrada: true };
+
+// ---- Pronto Atendimento (payload.pa) ----
+export type CorRisco = "Vermelho" | "Laranja" | "Amarelo" | "Verde" | "Azul" | "Sem cor";
+export type PorCor = Record<CorRisco, number>;
+export type PaPaciente = {
+  id: string; senha: string; atendimento: string; paciente: string; especialidade: string; fila: string; origem: string;
+  cor: CorRisco; situacao: string; grupo: "aguardando" | "em-curso" | "finalizado";
+  chegada: string; classifInicio: string; classifFinal: string; chamadaMedica: string; atendMedInicio: string; alta: string;
+  esperaClassifMin: number | null; esperaAtendMin: number | null; tempoTotalMin: number | null;
+  esperaClassif: string; esperaAtendMed: string; tempoTotal: string;
+  slaMin: number | null; foraSla: boolean; excessoMin: number;
+};
+export type Pa = {
+  meta?: { geradoEm?: string; fonte?: string; mascarado?: boolean }; disponivel: boolean;
+  totais: { total: number; aguardando: number; emCurso: number; finalizados: number; foraSla: number; porCor: PorCor };
+  limites: Partial<Record<CorRisco, number>>;
+  especialidades: { especialidade: string; total: number; porCor: PorCor; foraSla: number }[];
+  pacientes: PaPaciente[];
+};
+export type PaResult = { aguardando: true; atualizadoEm: string } | { aguardando: false; pa: Pa; atualizadoEm: string };
