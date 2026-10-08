@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Activity, AlertTriangle, Bell, ChevronLeft, Clock3, Droplets, HeartPulse, Maximize, Radio, Wind } from "lucide-react";
-import { alerts, rooms, type Room } from "@/lib/mock-data";
+import type { Room } from "@/lib/mock-data";
+import { DataError, PageSkeleton, usePainel } from "@/lib/use-painel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/tv")({
@@ -37,17 +38,20 @@ const fmt = (s: number) => [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s
 function TvBoard() {
   const [now, setNow] = useState("");
   const [tick, setTick] = useState(0);
-  const liveRooms = rooms.filter((r) => r.status === "Em cirurgia");
-  const [series, setSeries] = useState<Record<string, Record<string, number[]>>>(() =>
-    Object.fromEntries(liveRooms.map((r) => [r.id, Object.fromEntries(VITALS.map((v) => [v.key, Array.from({ length: 24 }, () => v.start)]))])));
+  const { data, isPending, isError } = usePainel();
+  const rooms = data?.salas ?? [];
+  const alerts = data?.alertas ?? [];
+  const liveRef = useRef<Room[]>([]);
+  liveRef.current = rooms.filter((r) => r.status === "Em cirurgia");
+  const [series, setSeries] = useState<Record<string, Record<string, number[]>>>({});
 
   useEffect(() => {
     setNow(clock());
     const id = setInterval(() => {
       setNow(clock());
       setTick((t) => t + 1);
-      setSeries((prev) => Object.fromEntries(liveRooms.map((r) => [r.id, Object.fromEntries(VITALS.map((v) => {
-        const arr = prev[r.id]?.[v.key] ?? [v.start];
+      setSeries((prev) => Object.fromEntries(liveRef.current.map((r) => [r.id, Object.fromEntries(VITALS.map((v) => {
+        const arr = prev[r.id]?.[v.key] ?? Array.from({ length: 24 }, () => v.start);
         const last = arr[arr.length - 1] ?? v.start;
         const drift = (v.start - last) * 0.15 + (Math.random() - 0.5) * 2 * v.step;
         const next = Math.min(v.max, Math.max(v.min, +(last + drift).toFixed(v.decimals ?? 0)));
@@ -77,6 +81,8 @@ function TvBoard() {
       </div>
     </header>
 
+    {isError && <div className="px-4 pt-4"><DataError dark /></div>}
+    {isPending && <div className="flex-1 p-4"><PageSkeleton dark /></div>}
     <main className="grid flex-1 gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
       {rooms.map((room, i) => <RoomTile key={room.id} room={room} tick={tick} vitals={series[room.id]} index={i} />)}
     </main>
