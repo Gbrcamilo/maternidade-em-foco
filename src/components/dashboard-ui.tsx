@@ -1,8 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, Check, ChevronRight, Clock3, DoorOpen, Users } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Room, RoomStatus } from "@/lib/mock-data";
+import type { RoomStatus } from "@/lib/mock-data";
 
 const statusClass: Record<RoomStatus, string> = { "Em cirurgia": "status-surgery", "Em preparo": "status-prep", "Em limpeza": "status-cleaning", Livre: "status-free", "Em atraso": "status-delay" };
 export function StatusBadge({ status }: { status: RoomStatus | string }) {
@@ -23,22 +22,7 @@ export function Filters({ options, active, onChange }: { options: string[]; acti
   </div>;
 }
 
-export function RoomCard({ room }: { room: Room }) {
-  return <Link to="/salas/$roomId" params={{ roomId: room.id }} className="room-card group">
-    <div className="flex items-start justify-between gap-3 border-b border-border p-4">
-      <div><p className="text-xs font-bold uppercase text-muted-foreground">{room.name}</p><h3 className="mt-1 text-base font-bold text-foreground">{room.procedure}</h3></div><StatusBadge status={room.status} />
-    </div>
-    <div className="grid gap-4 p-4">
-      <div className="grid grid-cols-2 gap-3 text-sm"><Info label="Paciente" value={room.patient} /><Info label="Prontuário" value={room.record} /><Info label="Prioridade" value={room.priority} /><Info label="Previsto / início" value={`${room.scheduled} / ${room.started}`} /></div>
-      <div className="flex items-end justify-between rounded-md bg-muted p-3"><div><p className="text-xs text-muted-foreground">Tempo em sala</p><p className="mt-1 font-mono text-2xl font-bold tabular-nums text-foreground">{room.elapsed}</p></div><Clock3 className="h-5 w-5 text-muted-foreground" /></div>
-      <div><p className="mb-2 text-xs font-semibold text-muted-foreground">Marcos registrados</p><div className="flex flex-wrap gap-1.5">{room.milestones.map((m) => <span key={m} className="inline-flex items-center gap-1 rounded bg-surface-positive px-2 py-1 text-xs text-success-strong"><Check className="h-3 w-3" />{m}</span>)}</div></div>
-      <div className={cn("flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold", room.note.includes("pendente") || room.status === "Em atraso" || room.id === "02" ? "bg-surface-warning text-warning-strong" : "bg-muted text-muted-foreground")}><AlertTriangle className="h-4 w-4 shrink-0" />{room.note}</div>
-      <div className="flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground"><span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{room.team}</span><ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></div>
-    </div>
-  </Link>;
-}
 
-function Info({ label, value }: { label: string; value: string }) { return <div><p className="text-xs text-muted-foreground">{label}</p><p className="mt-0.5 font-semibold text-foreground">{value}</p></div>; }
 
 export function TimelineItem({ time, title, state, detail }: { time: string; title: string; state: "done" | "pending" | "attention"; detail: string }) {
   return <div className="relative grid grid-cols-[52px_24px_1fr] gap-3 pb-5 last:pb-0"><span className="pt-0.5 font-mono text-xs font-bold text-muted-foreground">{time}</span><span className={cn("relative z-10 grid h-6 w-6 place-items-center rounded-full border-2 bg-card", state === "done" ? "border-success text-success" : state === "attention" ? "border-warning text-warning-strong" : "border-border text-muted-foreground")}>{state === "done" ? <Check className="h-3.5 w-3.5" /> : <span className="h-1.5 w-1.5 rounded-full bg-current" />}</span><div><p className="text-sm font-semibold text-foreground">{title}</p><p className="mt-0.5 text-xs text-muted-foreground">{detail}</p></div></div>;

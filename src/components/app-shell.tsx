@@ -1,40 +1,33 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, Bell, CalendarDays, ChartNoAxesCombined, ChevronLeft, DoorOpen, HeartPulse, Menu, MonitorPlay, PanelLeftClose, PanelLeftOpen, Stethoscope } from "lucide-react";
+import { Activity, ChevronLeft, Menu, PanelLeftClose, PanelLeftOpen, Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StaleNotice, STALE_SECONDS, useAge, usePa, usePainel } from "@/lib/use-painel";
+import { StaleNotice, STALE_SECONDS, useAge, usePa } from "@/lib/use-painel";
 
 const items = [
-  { label: "Painel de Salas", to: "/", icon: DoorOpen },
-  { label: "Agenda Cirúrgica", to: "/agenda", icon: CalendarDays },
-  { label: "Recuperação (RPA)", to: "/recuperacao", icon: HeartPulse },
   { label: "Pacientes do PA", to: "/pa", icon: Stethoscope, badge: "pa" },
-  { label: "Alertas", to: "/alertas", icon: Bell, badge: "alertas" },
-  { label: "Indicadores", to: "/indicadores", icon: ChartNoAxesCombined },
-  { label: "Painel de TV", to: "/tv", icon: MonitorPlay },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { data, isError } = usePainel();
-  const age = useAge(data?.atualizadoEm);
   const paQ = usePa();
-  const nAlertas = data?.alertas.length ?? 0;
+  const age = useAge(paQ.data?.atualizadoEm);
   const nForaSla = paQ.data && !paQ.data.aguardando && paQ.data.pa.disponivel ? paQ.data.pa.totais.foraSla : 0;
-  const ok = !!data && !isError && (age == null || age <= STALE_SECONDS);
+  const ok = !!paQ.data && !paQ.isError && (age == null || age <= STALE_SECONDS);
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const fonte = paQ.data && !paQ.isError && !paQ.data.aguardando ? paQ.data.pa.meta?.fonte : undefined;
   return <div className="min-h-screen bg-background text-foreground">
     {mobileOpen && <button aria-label="Fechar menu" className="fixed inset-0 z-40 bg-overlay lg:hidden" onClick={() => setMobileOpen(false)} />}
     <aside className={cn("fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-sidebar-foreground transition-[width,transform] duration-200", collapsed ? "lg:w-16" : "lg:w-64", mobileOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0")}>
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"><Activity className="h-5 w-5" /></span>{!collapsed && <div><p className="text-sm font-bold">Centro Cirúrgico</p><p className="text-xs text-sidebar-muted">Materno</p></div>}</div>
-      <nav className="flex-1 space-y-1 p-2">{items.map((item) => { const active = item.to === "/" ? path === "/" || path.startsWith("/salas/") : path.startsWith(item.to); return <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)} title={collapsed ? item.label : undefined} className={cn("flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors", active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground")}><item.icon className="h-5 w-5 shrink-0" />{!collapsed && <span className="flex-1">{item.label}</span>}{!collapsed && "badge" in item && (() => { const n = item.badge === "pa" ? nForaSla : nAlertas; return n > 0 ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-critical px-1 text-[10px] font-bold text-critical-foreground">{n}</span> : null; })()}</Link>; })}</nav>
+      <nav className="flex-1 space-y-1 p-2">{items.map((item) => { const active = path.startsWith(item.to); return <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)} title={collapsed ? item.label : undefined} className={cn("flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors", active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground")}><item.icon className="h-5 w-5 shrink-0" />{!collapsed && <span className="flex-1">{item.label}</span>}{!collapsed && "badge" in item && (() => { const n = item.badge === "pa" ? nForaSla : 0; return n > 0 ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-critical px-1 text-[10px] font-bold text-critical-foreground">{n}</span> : null; })()}</Link>; })}</nav>
       <button className="hidden h-12 items-center justify-center border-t border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground lg:flex" onClick={() => setCollapsed((v) => !v)} title={collapsed ? "Expandir menu" : "Recolher menu"}>{collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <><PanelLeftClose className="h-5 w-5" /> <span className="ml-2 text-xs">Recolher menu</span></>}</button>
     </aside>
     <div className={cn("min-h-screen transition-[padding] duration-200", collapsed ? "lg:pl-16" : "lg:pl-64")}>
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6"><button onClick={() => setMobileOpen(true)} className="grid h-9 w-9 place-items-center rounded-md border border-border lg:hidden" aria-label="Abrir menu"><Menu className="h-5 w-5" /></button><div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><span className={cn("h-2 w-2 rounded-full", ok ? "bg-success" : "bg-warning")} /><span>{data && !isError ? "Sistema operacional" : "Fonte de dados indisponível"}</span>{age != null && <><span>•</span><span>Atualizado há {age < 60 ? `${age} segundos` : `${Math.floor(age / 60)} min`}</span></>}<StaleNotice age={age} /></div><Link to="/alertas" className="relative grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground hover:text-foreground" aria-label={`Ver ${nAlertas} alertas`}><Bell className="h-4 w-4" />{nAlertas > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-critical px-1 text-[9px] font-bold text-critical-foreground">{nAlertas}</span>}</Link></header>
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6"><button onClick={() => setMobileOpen(true)} className="grid h-9 w-9 place-items-center rounded-md border border-border lg:hidden" aria-label="Abrir menu"><Menu className="h-5 w-5" /></button><div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"><span className={cn("h-2 w-2 rounded-full", ok ? "bg-success" : "bg-warning")} /><span>{paQ.data && !paQ.isError ? "Sistema operacional" : "Fonte de dados indisponível"}</span>{age != null && <><span>•</span><span>Atualizado há {age < 60 ? `${age} segundos` : `${Math.floor(age / 60)} min`}</span></>}<StaleNotice age={age} /></div></header>
       <main className="mx-auto min-h-[calc(100vh-7rem)] max-w-[1680px] p-4 md:p-6 xl:p-8">{children}</main>
-      <footer className="border-t border-border px-6 py-3 text-center text-xs text-muted-foreground">{data && !isError && data.meta?.fonte === "mock" ? "Ambiente demonstrativo — dados fictícios" : "Dados operacionais — uso interno, contém informações de pacientes. Não divulgar."}</footer>
+      <footer className="border-t border-border px-6 py-3 text-center text-xs text-muted-foreground">{fonte === "mock" ? "Ambiente demonstrativo — dados fictícios" : "Dados operacionais — uso interno, contém informações de pacientes. Não divulgar."}</footer>
     </div>
   </div>;
 }
