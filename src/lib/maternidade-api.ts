@@ -43,5 +43,5 @@ export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise
   const snap = await lerSnapshot();
   if (!snap) throw new Error("Fonte de dados indisponível");
   if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
-  return { pa: snap.payload.pa, atualizadoEm: snap.atualizadoEm };
+  return { aguardando: false, pa: snap.payload.pa, atualizadoEm: snap.atualizadoEm };
 });
