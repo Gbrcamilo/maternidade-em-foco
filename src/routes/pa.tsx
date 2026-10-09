@@ -12,6 +12,7 @@ import { CORES, corChip, corBar, cols, slaText, PatientTable, PatientCards, type
 import type { CorRisco, PaPaciente } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { PaAnalysis } from "@/components/pa-analysis";
+import { AlertasGestorBar } from "@/lib/use-voz-sla";
 
 export const Route = createFileRoute("/pa")({
   head: () => ({ meta: [
@@ -73,7 +74,7 @@ function PaDataPage() {
   }, [pa, esp, cor, sit, q, sort]);
 
   const subtitle = `Tempo de espera por classificação de risco${data ? ` · atualizado às ${horaSP(data.atualizadoEm)}` : ""}`;
-  const header = <div className="min-w-0"><PageHeader title="Pacientes do PA" subtitle={subtitle} /></div>;
+  const header = <div className="min-w-0 space-y-3"><PageHeader title="Pacientes do PA" subtitle={subtitle} /><AlertasGestorBar foraSla={pa?.disponivel ? pa.totais.foraSla : undefined} /></div>;
   if (isPending) return <PageSkeleton />;
   if (!data) return <div>{header}<DataError /></div>;
   const info = (msg: string) => <div>{header}<div className="flex items-center gap-2 rounded-md border border-border bg-card p-4 text-sm font-semibold text-muted-foreground shadow-card"><Clock3 className="h-4 w-4" />{msg}</div></div>;
