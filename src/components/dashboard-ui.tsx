@@ -6,13 +6,14 @@ import type { RoomStatus } from "@/lib/mock-data";
 const statusClass: Record<RoomStatus, string> = { "Em cirurgia": "status-surgery", "Em preparo": "status-prep", "Em limpeza": "status-cleaning", Livre: "status-free", "Em atraso": "status-delay" };
 export function StatusBadge({ status }: { status: RoomStatus | string }) {
   const cls = status in statusClass ? statusClass[status as RoomStatus] : "status-free";
-  return <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold", cls)}><span className="h-1.5 w-1.5 rounded-full bg-current" />{status}</span>;
+  const paClass = status === "Finalizado" ? "bg-surface-positive text-success-strong" : status.includes("Aguardando") ? "bg-surface-warning text-warning-strong" : status.includes("curso") || status.includes("Chamado") ? "bg-cleaning/15 text-primary" : cls;
+  return <span className={cn("inline-flex max-w-full items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold", paClass)}><span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" /><span className="whitespace-normal">{status}</span></span>;
 }
 
 export function MetricCard({ label, value, icon: Icon, tone = "default" }: { label: string; value: string | number; icon?: LucideIcon; tone?: "default" | "good" | "warn" }) {
-  return <div className={cn("metric-card", tone === "good" && "border-l-success", tone === "warn" && "border-l-warning")}>
-    <div><p className="text-xs font-semibold text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value}</p></div>
-    {Icon && <span className="grid h-9 w-9 place-items-center rounded-md bg-muted text-muted-foreground"><Icon className="h-4 w-4" /></span>}
+  return <div className={cn("metric-card min-w-0 gap-2", tone === "good" && "border-l-success", tone === "warn" && "border-l-warning")}>
+    <div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">{label}</p><p className="mt-1 text-3xl font-bold tabular-nums text-foreground">{value}</p></div>
+    {Icon && <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground"><Icon className="h-4 w-4" /></span>}
   </div>;
 }
 
