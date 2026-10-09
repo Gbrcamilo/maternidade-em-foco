@@ -11,3 +11,5 @@
 
 - Keep patient list presentation in a shared PA component module, with a desktop table and smaller-screen cards fed by the same filtered rows; this preserves identical data, sorting, and exports across viewports.
 - Use a focus-managed dialog for the small-screen navigation; keyboard dismissal and focus restoration must remain accessible.
+- Keep operational AI input in a strict numeric aggregate schema and never import patient data into its form or service; this prevents identifiers from reaching the model.
+- Run operational summaries through a POST server function and server-only Responses SDK helpers, consuming the streamed structured result; this keeps credentials private and returns a validated summary without altering snapshot data.
