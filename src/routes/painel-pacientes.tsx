@@ -1,8 +1,8 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
-import { MetricCard } from "@/components/dashboard-ui";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
+
 
 import { cn } from "@/lib/utils";
 import type { CorRisco } from "@/lib/mock-data";
@@ -55,10 +55,15 @@ function PaOverview() {
     {isError && <DataError />}
     <div className="flex items-center gap-2 border-l-2 border-success bg-surface-positive px-3 py-3 text-xs font-semibold text-success-strong"><ShieldCheck className="h-4 w-4 shrink-0" />Visão agregada · Sem identificação de pacientes</div>
     <section aria-label="Resumo do PA" className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-      <MetricCard label="Total de pacientes" value={t.total} icon={Users} />
-      <MetricCard label="Aguardando" value={t.aguardando} icon={Hourglass} tone="warn" />
-      <MetricCard label="Em curso" value={t.emCurso} icon={Stethoscope} />
-      <MetricCard label="Finalizados" value={t.finalizados} icon={CheckCircle2} tone="good" />
+      {[{ label: "Total de pacientes", value: t.total, icon: Users, panel: "border-l-primary bg-card", tone: "text-foreground" },
+        { label: "Aguardando", value: t.aguardando, icon: Hourglass, panel: "border-l-warning bg-surface-risk-orange", tone: "text-warning-strong" },
+        { label: "Em curso", value: t.emCurso, icon: Stethoscope, panel: "border-l-cleaning bg-surface-risk-blue", tone: "text-cleaning-strong" },
+        { label: "Finalizados", value: t.finalizados, icon: CheckCircle2, panel: "border-l-success bg-surface-risk-green", tone: "text-success-strong" }].map((c) => (
+        <article key={c.label} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", c.panel)}>
+          <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">{c.label}</p><p className={cn("mt-1 text-3xl font-extrabold tabular-nums", c.tone)}>{c.value}</p></div><c.icon className={cn("mt-1 h-5 w-5 shrink-0", c.tone)} /></div>
+        </article>
+      ))}
+
       <div className={cn("col-span-2 min-w-0 rounded-md border border-l-8 p-4 shadow-card sm:col-span-1", t.foraSla > 0 ? "border-critical bg-surface-risk-red" : "border-border bg-card")}>
         <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">Fora do SLA</p><p className={cn("mt-1 text-3xl font-extrabold tabular-nums", t.foraSla > 0 ? "text-critical-strong" : "text-foreground")}>{t.foraSla}</p></div><AlertTriangle className={cn("mt-1 h-5 w-5 shrink-0", t.foraSla > 0 ? "text-critical-strong" : "text-muted-foreground")} /></div>
       </div>
