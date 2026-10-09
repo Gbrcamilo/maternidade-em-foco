@@ -21,6 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const ok = !!paQ.data && !paQ.isError && (age == null || age <= STALE_SECONDS);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const fonte = paQ.data && !paQ.isError && !paQ.data.aguardando ? paQ.data.pa.meta?.fonte : undefined;
+  if (path === "/painel-pacientes/tv") return <>{children}</>;
   const navigation = <nav aria-label="Menu principal" className="flex-1 space-y-1 p-2">{items.map((item) => <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)} aria-current={path.startsWith(item.to) ? "page" : undefined} title={collapsed ? item.label : undefined} className={cn("flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors", path.startsWith(item.to) ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground")}><item.icon className="h-5 w-5 shrink-0" /><span className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>{item.label}</span>{"badge" in item && nForaSla > 0 && <span className={cn("grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-critical px-1 text-[10px] font-bold text-critical-foreground", collapsed && "lg:hidden")}>{nForaSla}</span>}</Link>)}</nav>;
   return <div className="min-h-screen bg-background text-foreground">
     <a href="#main-content" className="sr-only z-[60] rounded-md bg-primary px-4 py-3 text-primary-foreground focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Ir para o conteúdo</a>

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Clock3, Hourglass, ShieldCheck, Stethoscope, Users } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AlertTriangle, CheckCircle2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { MetricCard } from "@/components/dashboard-ui";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
