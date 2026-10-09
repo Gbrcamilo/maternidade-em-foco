@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PaRouteImport } from './routes/pa'
 import { Route as PainelPacientesRouteImport } from './routes/painel-pacientes'
+import { Route as ApiPaVozRouteImport } from './routes/api/pa-voz'
 import { Route as PainelPacientesTvRouteImport } from './routes/painel-pacientes.tv'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const PainelPacientesRoute = PainelPacientesRouteImport.update({
   path: '/painel-pacientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPaVozRoute = ApiPaVozRouteImport.update({
+  id: '/api/pa-voz',
+  path: '/api/pa-voz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PainelPacientesTvRoute = PainelPacientesTvRouteImport.update({
   id: '/tv',
   path: '/tv',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
   '/painel-pacientes': typeof PainelPacientesRouteWithChildren
+  '/api/pa-voz': typeof ApiPaVozRoute
   '/painel-pacientes/tv': typeof PainelPacientesTvRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
   '/painel-pacientes': typeof PainelPacientesRouteWithChildren
+  '/api/pa-voz': typeof ApiPaVozRoute
   '/painel-pacientes/tv': typeof PainelPacientesTvRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
   '/painel-pacientes': typeof PainelPacientesRouteWithChildren
+  '/api/pa-voz': typeof ApiPaVozRoute
   '/painel-pacientes/tv': typeof PainelPacientesTvRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pa' | '/painel-pacientes' | '/painel-pacientes/tv'
+  fullPaths:
+    '/' | '/pa' | '/painel-pacientes' | '/api/pa-voz' | '/painel-pacientes/tv'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pa' | '/painel-pacientes' | '/painel-pacientes/tv'
-  id: '__root__' | '/' | '/pa' | '/painel-pacientes' | '/painel-pacientes/tv'
+  to: '/' | '/pa' | '/painel-pacientes' | '/api/pa-voz' | '/painel-pacientes/tv'
+  id:
+    | '__root__'
+    | '/'
+    | '/pa'
+    | '/painel-pacientes'
+    | '/api/pa-voz'
+    | '/painel-pacientes/tv'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PaRoute: typeof PaRoute
   PainelPacientesRoute: typeof PainelPacientesRouteWithChildren
+  ApiPaVozRoute: typeof ApiPaVozRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -89,6 +106,13 @@ declare module '@tanstack/react-router' {
       path: '/painel-pacientes'
       fullPath: '/painel-pacientes'
       preLoaderRoute: typeof PainelPacientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pa-voz': {
+      id: '/api/pa-voz'
+      path: '/api/pa-voz'
+      fullPath: '/api/pa-voz'
+      preLoaderRoute: typeof ApiPaVozRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel-pacientes/tv': {
@@ -117,6 +141,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PaRoute: PaRoute,
   PainelPacientesRoute: PainelPacientesRouteWithChildren,
+  ApiPaVozRoute: ApiPaVozRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
