@@ -15,9 +15,9 @@ import { PaAnalysis } from "@/components/pa-analysis";
 
 export const Route = createFileRoute("/pa")({
   head: () => ({ meta: [
-    { title: "Pacientes do PA — Centro Cirúrgico Materno" },
+    { title: "Pacientes do PA — Maternidade em Foco" },
     { name: "description", content: "Tempo de espera do pronto atendimento obstétrico por classificação de risco." },
-    { property: "og:title", content: "Pacientes do PA — Centro Cirúrgico Materno" },
+    { property: "og:title", content: "Pacientes do PA — Maternidade em Foco" },
     { property: "og:description", content: "Tempo de espera do pronto atendimento obstétrico por classificação de risco." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },

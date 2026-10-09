@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { projectPaSummary, type PaPublicResult } from "./pa-public-summary";
 import type { Pa, PaResult, Painel, PainelResult, SalaResponse, SalaResult } from "./mock-data";
 
 const UNIDADE = "cmi-bloco-obstetrico";
@@ -44,4 +45,16 @@ export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise
   if (!snap) throw new Error("Fonte de dados indisponível");
   if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
   return { aguardando: false, pa: snap.payload.pa, atualizadoEm: snap.atualizadoEm };
+});
+
+// Painel público para pacientes: só números agregados (allowlist), nunca registros individuais.
+export const getPaPublico = createServerFn({ method: "GET" }).handler(async (): Promise<PaPublicResult> => {
+  try {
+    const snap = await lerSnapshot();
+    if (!snap) throw new Error("x");
+    if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
+    return { aguardando: false, pa: projectPaSummary(snap.payload.pa), atualizadoEm: snap.atualizadoEm };
+  } catch {
+    throw new Error("Fonte de dados indisponível");
+  }
 });
