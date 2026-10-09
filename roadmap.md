@@ -1,4 +1,4 @@
 # Melhorias da página de pacientes do PA
-- [ ] Melhorar leitura, filtros, busca e estados da lista, mantendo todos os dados.
-- [ ] Adaptar lista e navegação para celular, tablet e computador.
-- [ ] Verificar filtros, exportação e ausência de rolagem lateral indevida.
+- [x] Melhorar leitura, filtros, busca e estados da lista, mantendo todos os dados.
+- [x] Adaptar lista e navegação para celular, tablet e computador.
+- [x] Verificar filtros, exportação e ausência de rolagem lateral indevida.
