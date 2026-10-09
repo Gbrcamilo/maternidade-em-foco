@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { streamText, type ModelMessage } from "ai";
+import { Output, streamText, type ModelMessage } from "ai";
+import type { operationalSummarySchema } from "../pa-analysis-schema";
 
 import {
   createLovableAiGatewayRunIdFetch,
@@ -12,6 +13,7 @@ export function createResponsesCall(
   config: { baseURL: string; apiKey: string; model: string },
   messages: ModelMessage[],
   instructions?: string,
+  outputSchema?: typeof operationalSummarySchema,
 ) {
   const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(request));
   const provider = createOpenAI({
@@ -24,6 +26,7 @@ export function createResponsesCall(
   const result = streamText({
     model: provider.responses(config.model),
     maxRetries: 0,
+    ...(outputSchema ? { output: Output.object({ schema: outputSchema }) } : {}),
     // AI SDK 6 lacks `instructions`: rename this key to `system` there.
     ...(instructions ? { system: instructions } : {}),
     messages,
