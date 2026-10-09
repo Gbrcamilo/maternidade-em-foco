@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PaRouteImport } from './routes/pa'
 import { Route as PainelPacientesRouteImport } from './routes/painel-pacientes'
+import { Route as PainelPacientesTvRouteImport } from './routes/painel-pacientes.tv'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,43 @@ const PainelPacientesRoute = PainelPacientesRouteImport.update({
   path: '/painel-pacientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelPacientesTvRoute = PainelPacientesTvRouteImport.update({
+  id: '/tv',
+  path: '/tv',
+  getParentRoute: () => PainelPacientesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
-  '/painel-pacientes': typeof PainelPacientesRoute
+  '/painel-pacientes': typeof PainelPacientesRouteWithChildren
+  '/painel-pacientes/tv': typeof PainelPacientesTvRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
-  '/painel-pacientes': typeof PainelPacientesRoute
+  '/painel-pacientes': typeof PainelPacientesRouteWithChildren
+  '/painel-pacientes/tv': typeof PainelPacientesTvRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
-  '/painel-pacientes': typeof PainelPacientesRoute
+  '/painel-pacientes': typeof PainelPacientesRouteWithChildren
+  '/painel-pacientes/tv': typeof PainelPacientesTvRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pa' | '/painel-pacientes'
+  fullPaths: '/' | '/pa' | '/painel-pacientes' | '/painel-pacientes/tv'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pa' | '/painel-pacientes'
-  id: '__root__' | '/' | '/pa' | '/painel-pacientes'
+  to: '/' | '/pa' | '/painel-pacientes' | '/painel-pacientes/tv'
+  id: '__root__' | '/' | '/pa' | '/painel-pacientes' | '/painel-pacientes/tv'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PaRoute: typeof PaRoute
-  PainelPacientesRoute: typeof PainelPacientesRoute
+  PainelPacientesRoute: typeof PainelPacientesRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -82,13 +91,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelPacientesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-pacientes/tv': {
+      id: '/painel-pacientes/tv'
+      path: '/tv'
+      fullPath: '/painel-pacientes/tv'
+      preLoaderRoute: typeof PainelPacientesTvRouteImport
+      parentRoute: typeof PainelPacientesRoute
+    }
   }
 }
+
+interface PainelPacientesRouteChildren {
+  PainelPacientesTvRoute: typeof PainelPacientesTvRoute
+}
+
+const PainelPacientesRouteChildren: PainelPacientesRouteChildren = {
+  PainelPacientesTvRoute: PainelPacientesTvRoute,
+}
+
+const PainelPacientesRouteWithChildren = PainelPacientesRoute._addFileChildren(
+  PainelPacientesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PaRoute: PaRoute,
-  PainelPacientesRoute: PainelPacientesRoute,
+  PainelPacientesRoute: PainelPacientesRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Clock3, Hourglass, ShieldCheck, Stethoscope, Users } from "lucide-react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { AlertTriangle, CheckCircle2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { MetricCard } from "@/components/dashboard-ui";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
@@ -30,12 +30,14 @@ const riskDot: Record<CorRisco, string> = {
 const horaSP = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
 
 function PaPage() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  if (path === "/painel-pacientes/tv") return <Outlet />;
   return <PaOverview />;
 }
 
 function PaOverview() {
   const { data, isPending, isError } = usePaPublico();
-  const header = <PageHeader title="Painel para pacientes" subtitle={`Maternidade em Foco · Pronto atendimento${data ? ` · atualizado às ${horaSP(data.atualizadoEm)}` : ""}`} />;
+  const header = <div className="flex min-w-0 flex-wrap items-start justify-between gap-3"><PageHeader title="Painel para pacientes" subtitle={`Maternidade em Foco · Pronto atendimento${data ? ` · atualizado às ${horaSP(data.atualizadoEm)}` : ""}`} /><Link to="/painel-pacientes/tv" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground shadow-card hover:bg-accent"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>;
   if (isPending) return <PageSkeleton />;
   if (!data) return <div className="space-y-5">{header}<DataError /></div>;
   const pa = !data.aguardando ? data.pa : null;
