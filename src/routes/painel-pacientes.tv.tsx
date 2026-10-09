@@ -19,6 +19,16 @@ const riskDot: Record<CorRisco, string> = {
   Azul: "bg-cleaning", Branco: "bg-card border-2 border-border", "Sem cor": "bg-muted-foreground",
 };
 
+const riskPanel: Record<CorRisco, string> = {
+  Vermelho: "border-critical bg-surface-risk-red text-critical-strong",
+  Laranja: "border-warning bg-surface-risk-orange text-warning-strong",
+  Amarelo: "border-caution bg-surface-risk-yellow text-caution-strong",
+  Verde: "border-success bg-surface-risk-green text-success-strong",
+  Azul: "border-cleaning bg-surface-risk-blue text-cleaning-strong",
+  Branco: "border-border bg-surface-risk-white text-foreground",
+  "Sem cor": "border-muted-foreground bg-surface-risk-grey text-muted-foreground",
+};
+
 const horaSP = (d: Date | string) => new Date(d).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
 
 function useClock() {
@@ -69,7 +79,7 @@ function TvPage() {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col justify-center gap-6 px-6 py-6 xl:gap-8 xl:px-10">
+      <main className="flex flex-1 flex-col justify-center gap-5 px-6 py-5 xl:gap-7 xl:px-10">
         {isPending && <p role="status" className="py-20 text-center text-lg text-muted-foreground">Carregando…</p>}
         {!isPending && (!data || isError) && <DataError />}
         {data && !isError && (!pa || !pa.disponivel) && (
@@ -80,39 +90,50 @@ function TvPage() {
         {data && !isError && pa?.disponivel && (() => {
           const t = pa.totais;
           const cards = [
-            { label: "Aguardando", value: t.aguardando, icon: Hourglass, tone: "text-warning" },
-            { label: "Em atendimento", value: t.emCurso, icon: Stethoscope, tone: "text-cleaning" },
-            { label: "Finalizados", value: t.finalizados, icon: CheckCircle2, tone: "text-success" },
-            { label: "Total de pacientes", value: t.total, icon: Users, tone: "text-foreground" },
+            { label: "Aguardando", value: t.aguardando, icon: Hourglass, panel: "border-l-warning bg-surface-risk-orange", tone: "text-warning-strong" },
+            { label: "Em atendimento", value: t.emCurso, icon: Stethoscope, panel: "border-l-cleaning bg-surface-risk-blue", tone: "text-cleaning-strong" },
+            { label: "Finalizados", value: t.finalizados, icon: CheckCircle2, panel: "border-l-success bg-surface-risk-green", tone: "text-success-strong" },
+            { label: "Total de pacientes", value: t.total, icon: Users, panel: "border-l-primary bg-card", tone: "text-foreground" },
           ];
           return (
             <>
               <section aria-label="Resumo do atendimento" className="grid grid-cols-2 gap-4 xl:grid-cols-4 xl:gap-6">
                 {cards.map((c) => (
-                  <article key={c.label} className="rounded-lg border border-border bg-card p-5 shadow-card xl:p-7">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground xl:text-base"><c.icon className={cn("h-5 w-5 shrink-0", c.tone)} />{c.label}</div>
-                    <p className="mt-3 text-6xl font-bold tabular-nums xl:text-7xl">{c.value}</p>
+                  <article key={c.label} className={cn("rounded-lg border border-border border-l-8 p-5 shadow-card xl:p-7", c.panel)}>
+                    <div className="flex items-center gap-2 text-sm font-bold text-foreground xl:text-lg"><c.icon className={cn("h-5 w-5 shrink-0 xl:h-6 xl:w-6", c.tone)} />{c.label}</div>
+                    <p className={cn("mt-3 font-extrabold tabular-nums", c.tone, "text-6xl xl:text-7xl")}>{c.value}</p>
                   </article>
                 ))}
               </section>
 
+              <div className={cn("flex items-center gap-4 rounded-xl border-2 px-5 py-5 xl:px-8 xl:py-6", t.foraSla > 0 ? "border-warning bg-surface-risk-orange text-warning-strong" : "border-success bg-surface-risk-green text-success-strong")}>
+                {t.foraSla > 0
+                  ? <AlertTriangle className="h-9 w-9 shrink-0 xl:h-12 xl:w-12" />
+                  : <CheckCircle2 className="h-9 w-9 shrink-0 xl:h-12 xl:w-12" />}
+                <div className="min-w-0">
+                  <p className="text-2xl font-extrabold leading-tight xl:text-4xl">
+                    {t.foraSla > 0 ? `${t.foraSla} pacientes com tempo de espera acima do previsto` : "Tempos de espera dentro do previsto"}
+                  </p>
+                  <p className="mt-1 text-base leading-6 xl:text-lg">
+                    {t.foraSla > 0
+                      ? "A equipe do pronto atendimento está priorizando esses casos."
+                      : "Nenhum paciente acima do tempo previsto para a classificação de risco informada."}
+                  </p>
+                </div>
+              </div>
+
               <section aria-label="Distribuição por risco" className="rounded-lg border border-border bg-card p-5 shadow-card xl:p-7">
-                <h2 className="text-base font-bold xl:text-lg">Distribuição por classificação de risco</h2>
+                <h2 className="text-lg font-bold xl:text-2xl">Distribuição por classificação de risco</h2>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7 xl:gap-4">
                   {pa.riscos.map((r) => (
-                    <div key={r.cor} className="min-w-0 rounded-md border border-border bg-background p-4">
-                      <p className="flex items-center gap-2 text-sm font-semibold"><span className={cn("h-3 w-3 shrink-0 rounded-full", riskDot[r.cor])} />{r.cor}</p>
-                      <p className={cn("mt-2 font-bold tabular-nums", r.quantidade === null ? "text-sm text-muted-foreground" : "text-4xl xl:text-5xl")}>{r.quantidade === null ? "Protegido" : r.quantidade}</p>
+                    <div key={r.cor} className={cn("min-w-0 rounded-md border border-l-8 p-4", riskPanel[r.cor])}>
+                      <p className="flex items-center gap-2 text-sm font-bold xl:text-lg"><span className={cn("h-3.5 w-3.5 shrink-0 rounded-full", riskDot[r.cor])} />{r.cor}</p>
+                      <p className={cn("mt-2 font-extrabold tabular-nums", r.quantidade === null ? "text-base opacity-80" : "text-5xl xl:text-6xl")}>{r.quantidade === null ? "Protegido" : r.quantidade}</p>
                     </div>
                   ))}
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">Contagens de 1 a 4 por risco são protegidas para reduzir a identificação de grupos pequenos.</p>
               </section>
-
-              <div className={cn("flex items-center gap-3 rounded-lg border-l-4 px-5 py-4", t.foraSla > 0 ? "border-warning bg-surface-warning text-warning-strong" : "border-success bg-surface-positive text-success-strong")}>
-                {t.foraSla > 0 ? <AlertTriangle className="h-6 w-6 shrink-0" /> : <CheckCircle2 className="h-6 w-6 shrink-0" />}
-                <p className="text-base font-bold xl:text-lg">{t.foraSla > 0 ? `${t.foraSla} pacientes com tempo de espera acima do previsto` : "Tempos de espera dentro do previsto"}</p>
-              </div>
             </>
           );
         })()}

@@ -12,3 +12,8 @@
 - [x] Renomear o aplicativo e substituir a lista individual por indicadores agregados.
 - [x] Impedir que consultas públicas retornem dados individuais, mantendo o banco intacto.
 - [x] Verificar privacidade das respostas, atualização e apresentação em telas menores.
+
+# Painel para pacientes — destaque de cores e aviso de espera
+- [x] Colorir cartões de resumo, fluxo e risco com fundos próprios de cada classificação.
+- [x] Ampliar e destacar o aviso de tempo de espera, no painel e no modo TV.
+- [x] Conferir leitura em TV, tablet e celular sem rolagem lateral indevida.

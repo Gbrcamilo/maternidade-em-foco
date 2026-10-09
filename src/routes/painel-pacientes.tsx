@@ -1,8 +1,8 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
-import { MetricCard } from "@/components/dashboard-ui";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
+
 
 import { cn } from "@/lib/utils";
 import type { CorRisco } from "@/lib/mock-data";
@@ -19,10 +19,16 @@ export const Route = createFileRoute("/painel-pacientes")({
   component: PaPage,
 });
 
-const riskTone: Record<CorRisco, string> = {
-  Vermelho: "border-l-critical", Laranja: "border-l-warning", Amarelo: "border-l-caution",
-  Verde: "border-l-success", Azul: "border-l-cleaning", Branco: "border-l-border", "Sem cor": "border-l-muted-foreground",
+const riskPanel: Record<CorRisco, string> = {
+  Vermelho: "border-critical bg-surface-risk-red text-critical-strong",
+  Laranja: "border-warning bg-surface-risk-orange text-warning-strong",
+  Amarelo: "border-caution bg-surface-risk-yellow text-caution-strong",
+  Verde: "border-success bg-surface-risk-green text-success-strong",
+  Azul: "border-cleaning bg-surface-risk-blue text-cleaning-strong",
+  Branco: "border-border bg-surface-risk-white text-foreground",
+  "Sem cor": "border-muted-foreground bg-surface-risk-grey text-muted-foreground",
 };
+
 const riskDot: Record<CorRisco, string> = {
   Vermelho: "bg-critical", Laranja: "bg-warning", Amarelo: "bg-caution", Verde: "bg-success",
   Azul: "bg-cleaning", Branco: "bg-card border border-border", "Sem cor": "bg-muted-foreground",
@@ -49,40 +55,49 @@ function PaOverview() {
     {isError && <DataError />}
     <div className="flex items-center gap-2 border-l-2 border-success bg-surface-positive px-3 py-3 text-xs font-semibold text-success-strong"><ShieldCheck className="h-4 w-4 shrink-0" />Visão agregada · Sem identificação de pacientes</div>
     <section aria-label="Resumo do PA" className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-      <MetricCard label="Total de pacientes" value={t.total} icon={Users} />
-      <MetricCard label="Aguardando" value={t.aguardando} icon={Hourglass} tone="warn" />
-      <MetricCard label="Em curso" value={t.emCurso} icon={Stethoscope} />
-      <MetricCard label="Finalizados" value={t.finalizados} icon={CheckCircle2} tone="good" />
-      <div className={cn("col-span-2 min-w-0 rounded-md border bg-card p-4 shadow-card sm:col-span-1", t.foraSla > 0 ? "border-critical bg-critical/5" : "border-border")}>
-        <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">Fora do SLA</p><p className={cn("mt-1 text-3xl font-bold tabular-nums", t.foraSla > 0 ? "text-critical" : "text-foreground")}>{t.foraSla}</p></div><AlertTriangle className={cn("mt-1 h-5 w-5 shrink-0", t.foraSla > 0 ? "text-critical" : "text-muted-foreground")} /></div>
+      {[{ label: "Total de pacientes", value: t.total, icon: Users, panel: "border-l-primary bg-card", tone: "text-foreground" },
+        { label: "Aguardando", value: t.aguardando, icon: Hourglass, panel: "border-l-warning bg-surface-risk-orange", tone: "text-warning-strong" },
+        { label: "Em curso", value: t.emCurso, icon: Stethoscope, panel: "border-l-cleaning bg-surface-risk-blue", tone: "text-cleaning-strong" },
+        { label: "Finalizados", value: t.finalizados, icon: CheckCircle2, panel: "border-l-success bg-surface-risk-green", tone: "text-success-strong" }].map((c) => (
+        <article key={c.label} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", c.panel)}>
+          <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">{c.label}</p><p className={cn("mt-1 text-3xl font-extrabold tabular-nums", c.tone)}>{c.value}</p></div><c.icon className={cn("mt-1 h-5 w-5 shrink-0", c.tone)} /></div>
+        </article>
+      ))}
+
+      <div className={cn("col-span-2 min-w-0 rounded-md border border-l-8 p-4 shadow-card sm:col-span-1", t.foraSla > 0 ? "border-critical bg-surface-risk-red" : "border-border bg-card")}>
+        <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">Fora do SLA</p><p className={cn("mt-1 text-3xl font-extrabold tabular-nums", t.foraSla > 0 ? "text-critical-strong" : "text-foreground")}>{t.foraSla}</p></div><AlertTriangle className={cn("mt-1 h-5 w-5 shrink-0", t.foraSla > 0 ? "text-critical-strong" : "text-muted-foreground")} /></div>
       </div>
+
     </section>
     <section aria-labelledby="flow-title" className="min-w-0 space-y-4">
       <h2 id="flow-title" className="text-lg font-bold">Fluxo do atendimento</h2>
       <div className="grid min-w-0 gap-4 md:grid-cols-3">
-        {[{ label: "Aguardando", count: t.aguardando, tone: "bg-warning", icon: Hourglass }, { label: "Em curso", count: t.emCurso, tone: "bg-cleaning", icon: Stethoscope }, { label: "Finalizados", count: t.finalizados, tone: "bg-success", icon: CheckCircle2 }].map((stage, i) => <article key={stage.label} className="min-w-0 border-t border-border pt-4">
-          <div className="flex items-center gap-2 text-sm font-semibold"><span className="font-mono text-xs text-muted-foreground">0{i + 1}</span><stage.icon className="h-4 w-4 text-muted-foreground" />{stage.label}</div>
-          <div className="mt-3 flex items-baseline justify-between gap-2"><span className="text-4xl font-bold tabular-nums">{stage.count}</span><span className="text-xs text-muted-foreground">pacientes</span></div>
-          <div className="mt-3 flex h-2 overflow-hidden rounded bg-muted" role="meter" aria-label={stage.label} aria-valuemin={0} aria-valuemax={Math.max(t.total, stage.count, 1)} aria-valuenow={stage.count}><div className={stage.tone} style={{ width: `${t.total > 0 ? Math.min(100, stage.count / t.total * 100) : 0}%` }} /></div>
+        {[{ label: "Aguardando", count: t.aguardando, tone: "bg-warning", panel: "border-l-warning bg-surface-risk-orange text-warning-strong", icon: Hourglass }, { label: "Em curso", count: t.emCurso, tone: "bg-cleaning", panel: "border-l-cleaning bg-surface-risk-blue text-cleaning-strong", icon: Stethoscope }, { label: "Finalizados", count: t.finalizados, tone: "bg-success", panel: "border-l-success bg-surface-risk-green text-success-strong", icon: CheckCircle2 }].map((stage, i) => <article key={stage.label} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", stage.panel)}>
+          <div className="flex items-center gap-2 text-sm font-bold"><span className="font-mono text-xs opacity-80">0{i + 1}</span><stage.icon className="h-4 w-4 shrink-0" />{stage.label}</div>
+          <div className="mt-3 flex items-baseline justify-between gap-2"><span className="text-4xl font-extrabold tabular-nums">{stage.count}</span><span className="text-xs">pacientes</span></div>
+          <div className="mt-3 flex h-3 overflow-hidden rounded bg-background/70" role="meter" aria-label={stage.label} aria-valuemin={0} aria-valuemax={Math.max(t.total, stage.count, 1)} aria-valuenow={stage.count}><div className={stage.tone} style={{ width: `${t.total > 0 ? Math.min(100, stage.count / t.total * 100) : 0}%` }} /></div>
         </article>)}
+
       </div>
       <p className="text-xs text-muted-foreground">{completedPercent}% dos pacientes do envio atual estão finalizados.</p>
     </section>
     <section aria-labelledby="risk-title" className="min-w-0 space-y-4 border-t border-border pt-6">
       <h2 id="risk-title" className="text-lg font-bold">Distribuição por risco</h2>
-      <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{pa.riscos.map((risk) => <article key={risk.cor} className={cn("min-w-0 rounded-md border border-l-4 border-border bg-card p-4 shadow-card", riskTone[risk.cor])}>
-        <h3 className="flex min-w-0 items-center gap-2 text-sm font-semibold"><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", riskDot[risk.cor])} />{risk.cor}</h3>
-        <p className={cn("mt-3 font-bold tabular-nums", risk.quantidade === null ? "text-base text-muted-foreground" : "text-3xl")}>{risk.quantidade === null ? "Protegido" : risk.quantidade}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{risk.quantidade === null ? "Grupo pequeno" : "pacientes"}</p>
+      <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{pa.riscos.map((risk) => <article key={risk.cor} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", riskPanel[risk.cor])}>
+        <h3 className="flex min-w-0 items-center gap-2 text-sm font-bold"><span className={cn("h-3 w-3 shrink-0 rounded-full", riskDot[risk.cor])} />{risk.cor}</h3>
+        <p className={cn("mt-3 font-extrabold tabular-nums", risk.quantidade === null ? "text-base opacity-80" : "text-3xl")}>{risk.quantidade === null ? "Protegido" : risk.quantidade}</p>
+        <p className="mt-1 text-xs opacity-80">{risk.quantidade === null ? "Grupo pequeno" : "pacientes"}</p>
       </article>)}</div>
+
       <p className="text-xs leading-5 text-muted-foreground">Contagens de 1 a 4 por risco são protegidas para reduzir a identificação de grupos pequenos.</p>
     </section>
     <section aria-labelledby="attention-title" className="border-t border-border pt-6">
-      <h2 id="attention-title" className="text-lg font-bold">Atenção operacional</h2>
-      <div className={cn("mt-3 flex items-start gap-3 border-l-2 px-4 py-4", t.foraSla > 0 ? "border-warning bg-surface-warning text-warning-strong" : "border-success bg-surface-positive text-success-strong")}>
-        {t.foraSla > 0 ? <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /> : <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />}
-        <div className="min-w-0"><p className="text-sm font-bold">{t.foraSla > 0 ? `${t.foraSla} pacientes fora do SLA` : "Nenhum atraso de SLA informado"}</p><p className="mt-1 text-xs leading-5">{t.foraSla > 0 ? "Revisar a capacidade e o fluxo de atendimento com a coordenação." : "Situação conforme o último envio do PA."}</p></div>
+      <h2 id="attention-title" className="text-lg font-bold">Tempo de espera</h2>
+      <div className={cn("mt-3 flex items-start gap-3 rounded-md border border-l-8 px-4 py-5", t.foraSla > 0 ? "border-warning bg-surface-risk-orange text-warning-strong" : "border-success bg-surface-risk-green text-success-strong")}>
+        {t.foraSla > 0 ? <AlertTriangle className="mt-0.5 h-7 w-7 shrink-0" /> : <CheckCircle2 className="mt-0.5 h-7 w-7 shrink-0" />}
+        <div className="min-w-0"><p className="text-lg font-extrabold leading-7">{t.foraSla > 0 ? `${t.foraSla} pacientes com tempo de espera acima do previsto` : "Tempos de espera dentro do previsto"}</p><p className="mt-1 text-sm leading-6">{t.foraSla > 0 ? "A equipe do pronto atendimento está priorizando esses casos." : "Nenhum paciente acima do tempo previsto para a classificação de risco informada."}</p></div>
       </div>
     </section>
+
   </div>;
 }
