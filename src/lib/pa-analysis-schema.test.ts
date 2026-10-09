@@ -1,4 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import { describe, it as test } from "node:test";
+import { strict as assert } from "node:assert";
+const expect = (actual: boolean) => ({ toBe: (expected: boolean) => assert.equal(actual, expected) });
 import { aggregateSchema } from "./pa-analysis-schema";
 
 const valid = {
