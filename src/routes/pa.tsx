@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { CORES, corChip, corBar, cols, slaText, PatientTable, PatientCards, type ColKey, type PatientSort } from "@/components/pa-patients";
 import type { CorRisco, PaPaciente } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { PaAnalysis } from "@/components/pa-analysis";
 
 export const Route = createFileRoute("/pa")({
   head: () => ({ meta: [
@@ -37,6 +38,10 @@ function defaultSort(a: PaPaciente, b: PaPaciente) {
 }
 
 function PaPage() {
+  return <><PaDataPage /><PaAnalysis /></>;
+}
+
+function PaDataPage() {
   const { data, isPending, isError } = usePa();
   const [esp, setEsp] = useState("Todas");
   const [cor, setCor] = useState<CorRisco | "Todas">("Todas");
