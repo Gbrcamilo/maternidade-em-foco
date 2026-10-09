@@ -74,7 +74,17 @@
   --color-critical-foreground: var(--critical-foreground);
   --color-surface-positive: var(--surface-positive);
   --color-surface-warning: var(--surface-warning);
+  --color-surface-risk-red: var(--surface-risk-red);
+  --color-surface-risk-orange: var(--surface-risk-orange);
+  --color-surface-risk-yellow: var(--surface-risk-yellow);
+  --color-surface-risk-green: var(--surface-risk-green);
+  --color-surface-risk-blue: var(--surface-risk-blue);
+  --color-surface-risk-white: var(--surface-risk-white);
+  --color-surface-risk-grey: var(--surface-risk-grey);
+  --color-critical-strong: var(--critical-strong);
+  --color-cleaning-strong: var(--cleaning-strong);
   --color-overlay: var(--overlay);
+
   --shadow-card: 0 1px 2px color-mix(in oklab, var(--foreground) 7%, transparent), 0 4px 14px color-mix(in oklab, var(--foreground) 4%, transparent);
 }
 
@@ -125,7 +135,17 @@
   --critical-foreground: oklch(0.99 0 0);
   --surface-positive: oklch(0.95 0.035 158);
   --surface-warning: oklch(0.96 0.045 76);
+  --surface-risk-red: oklch(0.955 0.038 25);
+  --surface-risk-orange: oklch(0.955 0.05 60);
+  --surface-risk-yellow: oklch(0.965 0.07 92);
+  --surface-risk-green: oklch(0.95 0.048 155);
+  --surface-risk-blue: oklch(0.95 0.042 230);
+  --surface-risk-white: oklch(0.99 0.003 245);
+  --surface-risk-grey: oklch(0.945 0.012 245);
+  --critical-strong: oklch(0.45 0.19 27);
+  --cleaning-strong: oklch(0.43 0.1 233);
   --overlay: oklch(0.12 0.02 245 / 55%);
+
 }
 
 .dark {
@@ -163,7 +183,17 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
   --sidebar-muted: oklch(0.8 0.025 240);
   --sidebar-hover: oklch(1 0 0 / 8%);
+  --surface-risk-red: oklch(0.3 0.07 27);
+  --surface-risk-orange: oklch(0.31 0.07 55);
+  --surface-risk-yellow: oklch(0.33 0.08 90);
+  --surface-risk-green: oklch(0.3 0.07 157);
+  --surface-risk-blue: oklch(0.3 0.06 240);
+  --surface-risk-white: oklch(0.33 0.012 250);
+  --surface-risk-grey: oklch(0.3 0.02 255);
+  --critical-strong: oklch(0.78 0.15 25);
+  --cleaning-strong: oklch(0.8 0.09 228);
 }
+
 
 @layer base {
   * {
