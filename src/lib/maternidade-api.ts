@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import type { Pa, PaResult, Painel, PainelResult, SalaResponse, SalaResult } from "./mock-data";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import { projectPaSummary, type PaPublicResult } from "./pa-public-summary";
 
 const UNIDADE = "cmi-bloco-obstetrico";
-type Snapshot = { painel?: Painel; pa?: Pa; salas?: Record<string, SalaResponse> };
+type Snapshot = { pa?: unknown };
 
 // Executado apenas dentro dos handlers (servidor). A chave de serviço nunca vai ao navegador.
 async function lerSnapshot(): Promise<{ payload: Snapshot; atualizadoEm: string } | null> {
@@ -20,28 +21,14 @@ async function lerSnapshot(): Promise<{ payload: Snapshot; atualizadoEm: string 
   return { payload: (data.payload ?? {}) as Snapshot, atualizadoEm: data.atualizado_em };
 }
 
-export const getPainel = createServerFn({ method: "GET" }).handler(async (): Promise<PainelResult> => {
-  const snap = await lerSnapshot();
-  if (!snap?.payload.painel) throw new Error("Fonte de dados indisponível");
-  return { ...snap.payload.painel, atualizadoEm: snap.atualizadoEm };
-});
-
-export const getSala = createServerFn({ method: "GET" })
-  .inputValidator((input: { id: string }) => {
-    if (!/^[\w-]{1,20}$/.test(input.id)) throw new Error("Sala inválida");
-    return input;
-  })
-  .handler(async ({ data }): Promise<SalaResult> => {
+export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise<PaPublicResult> => {
+  setResponseHeader("Cache-Control", "no-store");
+  try {
     const snap = await lerSnapshot();
     if (!snap) throw new Error("Fonte de dados indisponível");
-    const sala = snap.payload.salas?.[data.id];
-    if (!sala) return { naoEncontrada: true };
-    return { ...sala, atualizadoEm: snap.atualizadoEm };
-  });
-
-export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise<PaResult> => {
-  const snap = await lerSnapshot();
-  if (!snap) throw new Error("Fonte de dados indisponível");
-  if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
-  return { aguardando: false, pa: snap.payload.pa, atualizadoEm: snap.atualizadoEm };
+    if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
+    return { aguardando: false, pa: projectPaSummary(snap.payload.pa), atualizadoEm: snap.atualizadoEm };
+  } catch {
+    throw new Error("Fonte de dados indisponível");
+  }
 });
