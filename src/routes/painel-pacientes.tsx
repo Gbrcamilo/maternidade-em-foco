@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { MetricCard } from "@/components/dashboard-ui";
@@ -30,6 +30,8 @@ const riskDot: Record<CorRisco, string> = {
 const horaSP = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
 
 function PaPage() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  if (path === "/painel-pacientes/tv") return <Outlet />;
   return <PaOverview />;
 }
 
