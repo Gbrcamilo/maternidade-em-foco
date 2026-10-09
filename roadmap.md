@@ -4,6 +4,6 @@
 - [x] Verificar filtros, exportação e ausência de rolagem lateral indevida.
 
 # Resumo operacional por IA
-- [ ] Adicionar formulário exclusivamente numérico de dados agregados, sem pacientes ou identificadores.
-- [ ] Gerar resumo e gargalos por Lovable AI no servidor, com validação e tratamento de erros.
-- [ ] Verificar envio real, privacidade dos dados enviados e adaptação para celular.
+- [x] Adicionar formulário exclusivamente numérico de dados agregados, sem pacientes ou identificadores.
+- [x] Gerar resumo e gargalos por Lovable AI no servidor, com validação e tratamento de erros.
+- [x] Verificar envio real, privacidade dos dados enviados e adaptação para celular.
