@@ -43,6 +43,7 @@ function useClock() {
 
 function TvPage() {
   const { data, isPending, isError } = usePaPublico();
+  const voz = useVozSla(data && !data.aguardando && data.pa.disponivel ? data.pa.totais.foraSla : undefined);
   const now = useClock();
   const [fullscreen, setFullscreen] = useState(false);
 

@@ -44,7 +44,8 @@ function PaPage() {
 
 function PaOverview() {
   const { data, isPending, isError } = usePaPublico();
-  const header = <div className="flex min-w-0 flex-wrap items-start justify-between gap-3"><PageHeader title="Painel para pacientes" subtitle={`Maternidade em Foco · Pronto atendimento${data ? ` · atualizado às ${horaSP(data.atualizadoEm)}` : ""}`} /><Link to="/painel-pacientes/tv" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground shadow-card hover:bg-accent"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>;
+  const voz = useVozSla(data && !data.aguardando && data.pa.disponivel ? data.pa.totais.foraSla : undefined);
+  const header = <div className="flex min-w-0 flex-wrap items-start justify-between gap-3"><PageHeader title="Painel para pacientes" subtitle={`Maternidade em Foco · Pronto atendimento${data ? ` · atualizado às ${horaSP(data.atualizadoEm)}` : ""}`} /><div className="flex shrink-0 flex-wrap items-center gap-2"><BotaoVozSla ativo={voz.ativo} onToggle={() => voz.setAtivo(!voz.ativo)} /><Link to="/painel-pacientes/tv" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground shadow-card hover:bg-accent"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div></div>;
   if (isPending) return <PageSkeleton />;
   if (!data) return <div className="space-y-5">{header}<DataError /></div>;
   const pa = !data.aguardando ? data.pa : null;
