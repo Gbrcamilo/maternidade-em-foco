@@ -75,6 +75,7 @@ function TvPage() {
             <p className="font-mono text-3xl font-bold tabular-nums xl:text-4xl">{horaSP(now)}</p>
             {data && <p className="text-xs text-muted-foreground">Dados atualizados às {horaSP(data.atualizadoEm)}</p>}
           </div>
+          <BotaoVozSla ativo={voz.ativo} onToggle={() => voz.setAtivo(!voz.ativo)} dark />
           <button onClick={toggleFullscreen} aria-label={fullscreen ? "Sair da tela cheia" : "Entrar em tela cheia"} title={fullscreen ? "Sair da tela cheia" : "Entrar em tela cheia"} className="grid h-11 w-11 place-items-center rounded-md border border-border bg-card text-muted-foreground hover:text-foreground">
             {fullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
           </button>
