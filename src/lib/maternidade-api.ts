@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseHeader } from "@tanstack/react-start/server";
 import { projectPaSummary, type PaPublicResult } from "./pa-public-summary";
+import type { Pa, PaResult, Painel, PainelResult, SalaResponse, SalaResult } from "./mock-data";
 
 const UNIDADE = "cmi-bloco-obstetrico";
-type Snapshot = { pa?: unknown };
+type Snapshot = { painel?: Painel; pa?: Pa; salas?: Record<string, SalaResponse> };
 
 // Executado apenas dentro dos handlers (servidor). A chave de serviço nunca vai ao navegador.
 async function lerSnapshot(): Promise<{ payload: Snapshot; atualizadoEm: string } | null> {
@@ -21,11 +21,37 @@ async function lerSnapshot(): Promise<{ payload: Snapshot; atualizadoEm: string 
   return { payload: (data.payload ?? {}) as Snapshot, atualizadoEm: data.atualizado_em };
 }
 
-export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise<PaPublicResult> => {
-  setResponseHeader("Cache-Control", "no-store");
-  try {
+export const getPainel = createServerFn({ method: "GET" }).handler(async (): Promise<PainelResult> => {
+  const snap = await lerSnapshot();
+  if (!snap?.payload.painel) throw new Error("Fonte de dados indisponível");
+  return { ...snap.payload.painel, atualizadoEm: snap.atualizadoEm };
+});
+
+export const getSala = createServerFn({ method: "GET" })
+  .inputValidator((input: { id: string }) => {
+    if (!/^[\w-]{1,20}$/.test(input.id)) throw new Error("Sala inválida");
+    return input;
+  })
+  .handler(async ({ data }): Promise<SalaResult> => {
     const snap = await lerSnapshot();
     if (!snap) throw new Error("Fonte de dados indisponível");
+    const sala = snap.payload.salas?.[data.id];
+    if (!sala) return { naoEncontrada: true };
+    return { ...sala, atualizadoEm: snap.atualizadoEm };
+  });
+
+export const getPa = createServerFn({ method: "GET" }).handler(async (): Promise<PaResult> => {
+  const snap = await lerSnapshot();
+  if (!snap) throw new Error("Fonte de dados indisponível");
+  if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
+  return { aguardando: false, pa: snap.payload.pa, atualizadoEm: snap.atualizadoEm };
+});
+
+// Painel público para pacientes: só números agregados (allowlist), nunca registros individuais.
+export const getPaPublico = createServerFn({ method: "GET" }).handler(async (): Promise<PaPublicResult> => {
+  try {
+    const snap = await lerSnapshot();
+    if (!snap) throw new Error("x");
     if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
     return { aguardando: false, pa: projectPaSummary(snap.payload.pa), atualizadoEm: snap.atualizadoEm };
   } catch {

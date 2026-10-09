@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PaRouteImport } from './routes/pa'
+import { Route as PainelPacientesRouteImport } from './routes/painel-pacientes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const PaRoute = PaRouteImport.update({
   path: '/pa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelPacientesRoute = PainelPacientesRouteImport.update({
+  id: '/painel-pacientes',
+  path: '/painel-pacientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
+  '/painel-pacientes': typeof PainelPacientesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
+  '/painel-pacientes': typeof PainelPacientesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/pa': typeof PaRoute
+  '/painel-pacientes': typeof PainelPacientesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pa'
+  fullPaths: '/' | '/pa' | '/painel-pacientes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pa'
-  id: '__root__' | '/' | '/pa'
+  to: '/' | '/pa' | '/painel-pacientes'
+  id: '__root__' | '/' | '/pa' | '/painel-pacientes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PaRoute: typeof PaRoute
+  PainelPacientesRoute: typeof PainelPacientesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-pacientes': {
+      id: '/painel-pacientes'
+      path: '/painel-pacientes'
+      fullPath: '/painel-pacientes'
+      preLoaderRoute: typeof PainelPacientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PaRoute: PaRoute,
+  PainelPacientesRoute: PainelPacientesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

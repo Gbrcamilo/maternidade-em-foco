@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
-import { getPa } from "./maternidade-api";
+import { getPa, getPaPublico, getPainel, getSala } from "./maternidade-api";
 import { cn } from "./utils";
 
 export const REFRESH_MS = 15000;
 
+export function usePainel() {
+  return useQuery({ queryKey: ["painel"], queryFn: () => getPainel(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
+}
+
 export function usePa() {
-  return useQuery({ queryKey: ["pa-public-summary"], queryFn: () => getPa(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
+  return useQuery({ queryKey: ["pa"], queryFn: () => getPa(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
+}
+
+export function useSala(id: string) {
+  return useQuery({ queryKey: ["sala", id], queryFn: () => getSala({ data: { id } }), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
 }
 
 export function formatGerado(iso: string, withTime = true) {
@@ -52,4 +60,8 @@ export function useAge(atualizadoEm?: string) {
 export function StaleNotice({ age, dark }: { age: number | null; dark?: boolean }) {
   if (age == null || age <= STALE_SECONDS) return null;
   return <span role="status" className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold", dark ? "bg-amber-500/15 text-amber-300" : "bg-surface-warning text-warning-strong")}><AlertTriangle className="h-3.5 w-3.5" />Dados desatualizados há {Math.floor(age / 60)} min</span>;
+}
+
+export function usePaPublico() {
+  return useQuery({ queryKey: ["pa-public-summary"], queryFn: () => getPaPublico(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
 }
