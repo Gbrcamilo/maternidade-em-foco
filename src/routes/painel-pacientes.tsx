@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { AlertTriangle, CheckCircle2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
+import { BotaoVozSla, useVozSla } from "@/lib/use-voz-sla";
 
 
 import { cn } from "@/lib/utils";

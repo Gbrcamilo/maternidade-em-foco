@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Clock3, Hourglass, Maximize, Minimize, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { DataError, usePaPublico } from "@/lib/use-painel";
+import { BotaoVozSla, useVozSla } from "@/lib/use-voz-sla";
 import { cn } from "@/lib/utils";
 import type { CorRisco } from "@/lib/mock-data";
 
