@@ -9,7 +9,9 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Keep patient list presentation in a shared PA component module, with a desktop table and smaller-screen cards fed by the same filtered rows; this preserves identical data, sorting, and exports across viewports.
+- Public PA views must use the server-side allowlisted numeric summary only, never individual snapshot records; this prevents personal information from reaching browser responses.
+- Suppress positive risk counts below five and omit specialty breakdowns in public PA summaries; this reduces small-group identification risk.
+- Remove unused patient-bearing server functions when disabling their pages; hidden navigation alone does not prevent direct endpoint access.
 - Use a focus-managed dialog for the small-screen navigation; keyboard dismissal and focus restoration must remain accessible.
 - Keep operational AI input in a strict numeric aggregate schema and never import patient data into its form or service; this prevents identifiers from reaching the model.
 - Run operational summaries through a POST server function and server-only Responses SDK helpers, consuming the streamed structured result; this keeps credentials private and returns a validated summary without altering snapshot data.

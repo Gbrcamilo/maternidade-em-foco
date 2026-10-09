@@ -79,9 +79,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Centro Cirúrgico Materno" },
-      { name: "description", content: "Painel operacional demonstrativo do bloco cirúrgico materno." },
-      { name: "author", content: "Centro Cirúrgico Materno" },
+      { title: "Maternidade em Foco" },
+      { name: "description", content: "Indicadores agregados do pronto atendimento materno, sem identificação de pacientes." },
+      { name: "author", content: "Maternidade em Foco" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
