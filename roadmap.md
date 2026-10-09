@@ -9,6 +9,6 @@
 - [x] Verificar envio real, privacidade dos dados enviados e adaptação para celular.
 
 # Maternidade em Foco — painel seguro do PA
-- [ ] Renomear o aplicativo e substituir a lista individual por indicadores agregados.
-- [ ] Impedir que consultas públicas retornem dados individuais, mantendo o banco intacto.
-- [ ] Verificar privacidade das respostas, atualização e apresentação em telas menores.
+- [x] Renomear o aplicativo e substituir a lista individual por indicadores agregados.
+- [x] Impedir que consultas públicas retornem dados individuais, mantendo o banco intacto.
+- [x] Verificar privacidade das respostas, atualização e apresentação em telas menores.
