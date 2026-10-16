@@ -76,7 +76,7 @@ function TvPage() {
 
   return (
     <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background text-foreground">
-      <div className="border-b border-border px-[2.2vw] py-[1.2vh]"><PartnerLogos size="lg" /></div>
+      <div className="border-b border-border bg-white px-[2.2vw] py-[1.2vh]"><PartnerLogos size="lg" /></div>
 
       <header className="flex items-center justify-between gap-6 border-b border-border px-[2.2vw] py-[1.4vh]">
         <h1 className="text-[clamp(1.5rem,3.4vh,3rem)] font-bold leading-tight">Pronto atendimento agora</h1>

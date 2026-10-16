@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { AlertTriangle, Check, CheckCircle2, Info, Link2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
-import { PageHeader } from "@/components/app-shell";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
 
 
@@ -81,7 +80,14 @@ function PaPage() {
 
 function PaOverview() {
   const { data, isPending, isError } = usePaPublico();
-  const header = <div className="flex min-w-0 flex-wrap items-start justify-between gap-3"><PageHeader title="Painel para pacientes" subtitle={`Maternidade em Foco · Pronto atendimento${data ? ` · atualizado às ${horaSP(data.atualizadoEm)}` : ""}`} /><div className="flex shrink-0 flex-wrap items-center gap-2"><ShareLink /><Link to="/painel-pacientes/tv" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground shadow-card hover:bg-accent"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div></div>;
+  const header = <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
+    <div className="min-w-0">
+      <p className="text-xs font-bold uppercase tracking-wider text-primary">Pronto atendimento · Maternidade em Foco</p>
+      <h1 className="mt-1 text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl">Painel para pacientes</h1>
+      <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5 font-semibold text-success-strong"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />{data ? `Atualizado às ${horaSP(data.atualizadoEm)}` : "Carregando"}</span><span aria-hidden>·</span><span>Atualiza automaticamente</span></p>
+    </div>
+    <div className="flex shrink-0 flex-wrap items-center gap-2"><ShareLink /><Link to="/painel-pacientes/tv" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card hover:bg-primary/90"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>
+  </div>;
   if (isPending) return <PageSkeleton />;
   if (!data) return <div className="space-y-5">{header}<DataError /></div>;
   const pa = !data.aguardando ? data.pa : null;

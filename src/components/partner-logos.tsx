@@ -6,7 +6,7 @@ export function PartnerLogos({ size = "md", className }: { size?: "md" | "lg"; c
   return (
     <div className={cn("flex w-full flex-wrap items-center justify-between gap-x-8 gap-y-3", className)}>
       <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
-        <img src="/logos/imodernizar.png" alt="iModernizar Brasil" className={cn("w-auto object-contain", h)} />
+        <img src="/logos/imodernizar.png" alt="iModernizar Brasil" className={cn("w-auto object-contain mix-blend-multiply", h)} />
         <span aria-hidden className="hidden h-8 w-px bg-border sm:block" />
         <div className="flex items-center gap-3">
           <img src="/logos/cmi.png" alt="" className={cn("aspect-square w-auto rounded-full object-contain", h)} />
@@ -14,8 +14,8 @@ export function PartnerLogos({ size = "md", className }: { size?: "md" | "lg"; c
         </div>
       </div>
       <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
-        <img src="/logos/sus.png" alt="SUS – Sistema Único de Saúde" className={cn("w-auto object-contain", h)} />
-        <img src="/logos/prefeitura-betim.png" alt="Prefeitura de Betim – Futuro para todos" className={cn("w-auto object-contain", h)} />
+        <img src="/logos/sus.png" alt="SUS – Sistema Único de Saúde" className={cn("w-auto object-contain mix-blend-multiply", h)} />
+        <img src="/logos/prefeitura-betim.png" alt="Prefeitura de Betim – Futuro para todos" className={cn("w-auto object-contain mix-blend-multiply", h)} />
       </div>
     </div>
   );
