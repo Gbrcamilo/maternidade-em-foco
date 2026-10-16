@@ -49,9 +49,11 @@ function secureResponse(response: Response, request: Request): Response {
   headers.set("Cache-Control", "no-store");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "no-referrer");
-  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), serial=(), accelerometer=(), gyroscope=(), magnetometer=(), interest-cohort=()");
   headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
-  headers.set("Content-Security-Policy", "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://lovable.dev https://*.lovable.dev https://lovable.app https://*.lovable.app");
+  headers.set("X-Permitted-Cross-Domain-Policies", "none");
+  // Sem inline handlers, sem iframes próprios, sem sites de terceiros embutindo a página (somente o editor do Lovable).
+  headers.set("Content-Security-Policy", "object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; script-src-attr 'none'; upgrade-insecure-requests; frame-ancestors 'self' https://lovable.dev https://*.lovable.dev");
   if (new URL(request.url).protocol === "https:") headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
