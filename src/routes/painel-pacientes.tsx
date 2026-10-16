@@ -189,6 +189,26 @@ function PaOverview() {
       {hasHidden && <p className="text-xs leading-5 text-muted-foreground">Quando há de 1 a 4 pessoas em um grupo, o número não é mostrado, para que ninguém possa ser identificado.</p>}
     </section>
 
+    {pa.especialidades.length > 0 && <section aria-labelledby="spec-title" className="min-w-0 space-y-4 border-t border-border pt-6">
+      <div>
+        <h2 id="spec-title" className="text-xl font-bold sm:text-2xl">Atendimento por especialidade</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">Como está o atendimento em cada área da equipe de saúde.</p>
+      </div>
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {pa.especialidades.map((s) => <article key={s.nome} className="min-w-0 rounded-2xl border-2 border-t-8 border-primary bg-card p-4 shadow-card sm:p-5">
+          <h3 className="flex items-center gap-2 text-base font-bold text-primary sm:text-lg"><Stethoscope className="h-5 w-5 shrink-0" /><span className="min-w-0 break-words">{s.nome}</span></h3>
+          <p className="mt-3 flex items-baseline gap-2"><span className={cn("font-extrabold leading-none tabular-nums text-foreground", s.total === null ? "text-xl" : "text-5xl")}>{s.total ?? "Poucas pessoas"}</span>{s.total !== null && <span className="text-sm font-medium text-muted-foreground">{pessoas(s.total)} no total</span>}</p>
+          <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {[{ label: "Aguardando", value: s.aguardando, tone: "text-warning-strong", surface: "bg-surface-risk-orange" }, { label: "Em atendimento", value: s.emCurso, tone: "text-cleaning-strong", surface: "bg-surface-risk-blue" }, { label: "Já atendidas", value: s.finalizados, tone: "text-success-strong", surface: "bg-surface-risk-green" }].map((m) => <div key={m.label} className={cn("rounded-xl px-1 py-2", m.surface)}>
+              <dd className={cn("font-extrabold tabular-nums", m.tone, m.value === null ? "text-xs" : "text-2xl")}>{m.value ?? "Poucas"}</dd>
+              <dt className="text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">{m.label}</dt>
+            </div>)}
+          </dl>
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold"><span className="inline-flex items-center gap-1.5"><Timer className="h-4 w-4 text-primary" />Maior espera: {s.maiorMin === null ? "—" : fmtEspera(s.maiorMin)}</span>{s.foraSla !== null && s.foraSla > 0 && <span className="inline-flex items-center gap-1.5 text-critical-strong"><AlertTriangle className="h-4 w-4" />{s.foraSla} acima do previsto</span>}</p>
+        </article>)}
+      </div>
+    </section>}
+
     <section aria-label="Orientação" className="flex items-start gap-3 rounded-2xl border-2 border-l-8 border-primary bg-card px-4 py-4 text-sm leading-6 shadow-card sm:text-base"><Info className="mt-0.5 h-6 w-6 shrink-0 text-primary" /><p><strong>Se o seu estado piorar enquanto aguarda, avise imediatamente a equipe de classificação.</strong> O atendimento é feito pela gravidade do caso, não pela ordem de chegada.</p></section>
 
     <Faq />

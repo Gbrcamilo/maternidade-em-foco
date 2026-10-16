@@ -151,7 +151,7 @@ function TvPage() {
       <footer className="border-t border-border bg-card px-[2.2vw] py-[1.2vh]">
         <p className="flex items-center gap-3 text-[clamp(1rem,2.4vh,2rem)] font-semibold"><Info className="h-[1.2em] w-[1.2em] shrink-0 text-primary" />Se o seu estado piorar enquanto aguarda, avise imediatamente a equipe de classificação.</p>
         <p className="mt-1 flex flex-wrap items-center justify-between gap-x-6 text-[clamp(0.8rem,1.7vh,1.3rem)]">
-          <span className="flex items-center gap-2"><ShieldCheck className="h-[1.2em] w-[1.2em] shrink-0 text-success-strong" />Nenhum nome ou dado pessoal é mostrado. Quando há de 1 a 4 pessoas, o número fica oculto.</span>
+          <span className="flex items-center gap-2"><ShieldCheck className="h-[1.2em] w-[1.2em] shrink-0 text-success-strong" />Nenhum nome ou dado pessoal é mostrado.{(pa?.riscos.some((r) => r.quantidade === null) || cards.some((c) => c.value === null)) && " Quando há de 1 a 4 pessoas, o número fica oculto."}</span>
           <span>{CREDIT_TI}</span>
         </p>
       </footer>

@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Public PA views must use the server-side allowlisted numeric summary only, never individual snapshot records; this prevents personal information from reaching browser responses.
-- Suppress positive risk counts below five and omit specialty breakdowns in public PA summaries; this reduces small-group identification risk.
+- Public PA summaries show exact counts by owner decision (16/10/2026), controlled by `SUPPRESS_SMALL_COUNTS` in `pa-public-summary.ts`; set it to `true` to hide counts of 1 to 4 and reduce small-group identification risk. Always omit specialty breakdowns and any per-patient field.
 - Remove unused patient-bearing server functions when disabling their pages; hidden navigation alone does not prevent direct endpoint access.
 - Use a focus-managed dialog for the small-screen navigation; keyboard dismissal and focus restoration must remain accessible.
 - Keep operational AI input in a strict numeric aggregate schema and never import patient data into its form or service; this prevents identifiers from reaching the model.

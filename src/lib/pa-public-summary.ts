@@ -18,10 +18,10 @@ const waitingRowSchema = z.object({
 });
 
 /**
- * Owner decision about counts of 1 to 4 people.
- * `true` hides them (LGPD small-group protection); `false` shows exact numbers. Needs DPO approval to be `false`.
+ * Owner decision (16/10/2026): show exact counts, including 1 to 4 people.
+ * Set to `true` to hide counts of 1 to 4 again (LGPD small-group protection). Recommended: have the DPO approve the exact display.
  */
-export const SUPPRESS_SMALL_COUNTS = true;
+export const SUPPRESS_SMALL_COUNTS = false;
 
 export type PaWaitByRisk = { cor: Risk; aguardando: number | null; maiorMin: number | null; mediaMin: number | null; previstoMin: number | null };
 export type PaWait = {
@@ -33,12 +33,23 @@ export type PaWait = {
   porCor: PaWaitByRisk[];
 };
 
+export type PaSpecialty = {
+  nome: string;
+  total: number | null;
+  aguardando: number | null;
+  emCurso: number | null;
+  finalizados: number | null;
+  maiorMin: number | null;
+  foraSla: number | null;
+};
+
 export type PaPublicSummary = {
   disponivel: boolean;
   demonstrativo: boolean;
   totais: { total: number; aguardando: number | null; emCurso: number | null; finalizados: number | null; foraSla: number };
   riscos: { cor: Risk; quantidade: number | null }[];
   espera: PaWait;
+  especialidades: PaSpecialty[];
 };
 export type PaPublicResult = { aguardando: true; atualizadoEm: string } | { aguardando: false; pa: PaPublicSummary; atualizadoEm: string };
 
@@ -93,11 +104,66 @@ export function projectWait(rows: unknown, suppressSmall: boolean): PaWait {
   };
 }
 
+const specialtyRowSchema = z.object({
+  /** Category label from the hospital system; restricted to letters, digits and a few separators. */
+  especialidade: z.string().regex(/^[\p{L}\p{N} /().,&-]{2,60}$/u),
+  grupo: z.enum(["aguardando", "em-curso", "finalizado"]),
+  foraSla: z.boolean().optional(),
+  situacao: z.string().max(80).optional(),
+  esperaClassifMin: z.number().min(0).max(100000).nullable().optional(),
+  esperaAtendMin: z.number().min(0).max(100000).nullable().optional(),
+});
+
+const WORD_FIX: Record<string, string> = {
+  obstetricia: "Obstetrícia", ginecologia: "Ginecologia", enfermagem: "Enfermagem", pediatria: "Pediatria", clinica: "Clínica",
+  medica: "Médica", ortopedia: "Ortopedia", cirurgia: "Cirurgia", psiquiatria: "Psiquiatria", odontologia: "Odontologia", servico: "Serviço", social: "Social",
+};
+const SMALL_WORDS = new Set(["de", "da", "do", "e"]);
+/** "GINECOLOGIA/OBSTETRICIA" → "Ginecologia/Obstetrícia". */
+function prettySpecialty(raw: string): string {
+  return raw.trim().toLowerCase().replace(/[\p{L}\p{N}]+/gu, (w) => WORD_FIX[w] ?? (SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)));
+}
+
+/** Counts per specialty. Only category labels and numbers leave the server, never rows. */
+export function projectSpecialties(rows: unknown, suppressSmall: boolean): PaSpecialty[] {
+  if (!Array.isArray(rows)) return [];
+  const groups = new Map<string, { aguardando: number[]; emCurso: number; finalizados: number; foraSla: number }>();
+  for (const row of rows) {
+    const parsed = specialtyRowSchema.safeParse(row);
+    if (!parsed.success) continue;
+    const r = parsed.data;
+    const key = prettySpecialty(r.especialidade);
+    const g = groups.get(key) ?? { aguardando: [], emCurso: 0, finalizados: 0, foraSla: 0 };
+    if (r.grupo === "aguardando") {
+      const minutes = /classific/i.test(r.situacao ?? "") ? r.esperaClassifMin : r.esperaAtendMin;
+      g.aguardando.push(typeof minutes === "number" ? Math.round(minutes) : -1);
+    } else if (r.grupo === "em-curso") g.emCurso += 1;
+    else g.finalizados += 1;
+    if (r.foraSla === true) g.foraSla += 1;
+    groups.set(key, g);
+  }
+  const hide = (n: number): number | null => (suppressSmall && n > 0 && n < 5 ? null : n);
+  const minGroup = suppressSmall ? 5 : 2;
+  return [...groups.entries()]
+    .map(([nome, g]) => {
+      const total = g.aguardando.length + g.emCurso + g.finalizados;
+      const known = g.aguardando.filter((m) => m >= 0);
+      return {
+        nome, total: hide(total), aguardando: hide(g.aguardando.length), emCurso: hide(g.emCurso), finalizados: hide(g.finalizados),
+        maiorMin: g.aguardando.length >= minGroup && known.length ? Math.max(...known) : null,
+        foraSla: hide(g.foraSla), sort: total,
+      };
+    })
+    .sort((a, b) => b.sort - a.sort)
+    .slice(0, 12)
+    .map(({ sort: _sort, ...rest }) => rest);
+}
+
 /** Explicit allowlist: no snapshot strings, metadata or individual rows leave the server. */
 export function projectPaSummary(input: unknown, { suppressSmall = SUPPRESS_SMALL_COUNTS }: { suppressSmall?: boolean } = {}): PaPublicSummary {
   const source = z.object({ disponivel: z.boolean(), totais: z.unknown().optional(), pacientes: z.unknown().optional(), meta: z.object({ fonte: z.unknown().optional() }).optional() }).parse(input);
   const demonstrativo = source.meta?.fonte === "mock";
-  if (!source.disponivel) return { disponivel: false, demonstrativo, totais: { total: 0, aguardando: 0, emCurso: 0, finalizados: 0, foraSla: 0 }, riscos: [], espera: EMPTY_WAIT };
+  if (!source.disponivel) return { disponivel: false, demonstrativo, totais: { total: 0, aguardando: 0, emCurso: 0, finalizados: 0, foraSla: 0 }, riscos: [], espera: EMPTY_WAIT, especialidades: [] };
   const totals = totalsSchema.parse(source.totais);
   const protect = (values: number[]): (number | null)[] => (suppressSmall ? protectSmallCounts(values) : values);
   const [aguardando = null, emCurso = null, finalizados = null] = protect([totals.aguardando, totals.emCurso, totals.finalizados]);
@@ -107,5 +173,6 @@ export function projectPaSummary(input: unknown, { suppressSmall = SUPPRESS_SMAL
     totais: { total: totals.total, aguardando, emCurso, finalizados, foraSla: totals.foraSla },
     riscos: PA_RISKS.map((cor, i) => ({ cor, quantidade: riskCounts[i] ?? null })),
     espera: projectWait(source.pacientes, suppressSmall),
+    especialidades: projectSpecialties(source.pacientes, suppressSmall),
   };
 }
