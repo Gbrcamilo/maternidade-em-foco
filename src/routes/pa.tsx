@@ -13,6 +13,7 @@ import type { CorRisco, PaPaciente } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { PaAnalysis } from "@/components/pa-analysis";
 import { AlertasGestorBar } from "@/lib/use-voz-sla";
+import { AcessoGestor } from "@/components/acesso-gestor";
 
 export const Route = createFileRoute("/pa")({
   head: () => ({ meta: [
@@ -42,7 +43,7 @@ function defaultSort(a: PaPaciente, b: PaPaciente) {
 function PaPage() {
   const { data, isPending } = usePa();
   if (isPending) return <PageSkeleton />;
-  if (!data) return <section className="space-y-4 py-8"><PageHeader title="Acesso restrito aos gestores" subtitle="O acesso às informações individuais exige autorização. Solicite a configuração do seu acesso ao responsável pelo aplicativo." /><Button asChild><Link to="/painel-pacientes">Abrir painel para pacientes</Link></Button></section>;
+  if (!data) return <AcessoGestor />;
   return <><PaDataPage /><PaAnalysis /></>;
 }
 
