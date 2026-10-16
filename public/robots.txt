@@ -1,14 +1,13 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
+# Prévia de link (WhatsApp, Facebook, X) permitida; buscadores não listam a página.
+User-agent: facebookexternalhit
+Allow: /painel-pacientes
+Disallow: /pa
+Disallow: /api/
 
 User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+Allow: /painel-pacientes
+Disallow: /pa
+Disallow: /api/
 
 User-agent: *
-Allow: /
+Disallow: /

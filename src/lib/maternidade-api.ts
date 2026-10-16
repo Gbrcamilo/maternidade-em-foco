@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseHeader } from "@tanstack/react-start/server";
+import { getRequest, setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 import { requireManager } from "./manager-access";
 import { projectPaSummary, type PaPublicResult } from "./pa-public-summary";
 import type { Pa, PaResult, Painel, SalaResponse } from "./mock-data";
@@ -31,13 +31,46 @@ export const getPa = createServerFn({ method: "GET" }).middleware([requireManage
 });
 
 // Painel público para pacientes: só números agregados (allowlist), nunca registros individuais.
+// Acesso aberto (sem login). Para proteger o banco contra excesso de chamadas: cache curto
+// compartilhado entre visitantes e limite de requisições por IP.
+const CACHE_MS = 5_000;
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 300;
+let publicCache: { at: number; value: PaPublicResult } | null = null;
+let publicInflight: Promise<PaPublicResult> | null = null;
+const hits = new Map<string, { n: number; reset: number }>();
+
+function rateLimited(): boolean {
+  const h = getRequest()?.headers;
+  const ip = h?.get("cf-connecting-ip") ?? h?.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const now = Date.now();
+  if (hits.size > 5000) for (const [k, v] of hits) if (v.reset < now) hits.delete(k);
+  const cur = hits.get(ip);
+  if (!cur || cur.reset < now) { hits.set(ip, { n: 1, reset: now + RATE_WINDOW_MS }); return false; }
+  cur.n += 1;
+  return cur.n > RATE_MAX;
+}
+
+async function carregarPublico(): Promise<PaPublicResult> {
+  const snap = await lerSnapshot();
+  if (!snap) throw new Error("x");
+  if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
+  return { aguardando: false, pa: projectPaSummary(snap.payload.pa), atualizadoEm: snap.atualizadoEm };
+}
+
 export const getPaPublico = createServerFn({ method: "GET" }).handler(async (): Promise<PaPublicResult> => {
   setResponseHeader("Cache-Control", "no-store");
+  if (rateLimited()) {
+    setResponseStatus(429);
+    setResponseHeader("Retry-After", "60");
+    throw new Error("Muitas solicitações. Tente novamente em instantes.");
+  }
   try {
-    const snap = await lerSnapshot();
-    if (!snap) throw new Error("x");
-    if (!snap.payload.pa) return { aguardando: true, atualizadoEm: snap.atualizadoEm };
-    return { aguardando: false, pa: projectPaSummary(snap.payload.pa), atualizadoEm: snap.atualizadoEm };
+    if (publicCache && Date.now() - publicCache.at < CACHE_MS) return publicCache.value;
+    publicInflight ??= carregarPublico().finally(() => { publicInflight = null; });
+    const value = await publicInflight;
+    publicCache = { at: Date.now(), value };
+    return value;
   } catch {
     throw new Error("Fonte de dados indisponível");
   }
