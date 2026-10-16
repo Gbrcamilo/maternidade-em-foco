@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { AlertTriangle, Check, CheckCircle2, Info, Link2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Hourglass, Info, Link2, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
-
-
+import { PeopleRow, StackBar } from "@/components/people-icons";
+import { RISKS, MAIN_RISKS } from "@/lib/risk-meta";
 import { cn } from "@/lib/utils";
-import type { CorRisco } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/painel-pacientes")({
   head: () => ({ meta: [
@@ -20,30 +19,8 @@ export const Route = createFileRoute("/painel-pacientes")({
   component: PaPage,
 });
 
-const riskPanel: Record<CorRisco, string> = {
-  Vermelho: "border-critical bg-surface-risk-red text-critical-strong",
-  Laranja: "border-warning bg-surface-risk-orange text-warning-strong",
-  Amarelo: "border-caution bg-surface-risk-yellow text-caution-strong",
-  Verde: "border-success bg-surface-risk-green text-success-strong",
-  Azul: "border-cleaning bg-surface-risk-blue text-cleaning-strong",
-  Branco: "border-border bg-surface-risk-white text-foreground",
-  "Sem cor": "border-muted-foreground bg-surface-risk-grey text-muted-foreground",
-};
-
-const riskDot: Record<CorRisco, string> = {
-  Vermelho: "bg-critical", Laranja: "bg-warning", Amarelo: "bg-caution", Verde: "bg-success",
-  Azul: "bg-cleaning", Branco: "bg-card border border-border", "Sem cor": "bg-muted-foreground",
-};
-const riskInfo: Record<CorRisco, { nome: string; texto: string }> = {
-  Vermelho: { nome: "Emergência", texto: "Atendimento imediato" },
-  Laranja: { nome: "Muito urgente", texto: "Atendimento prioritário" },
-  Amarelo: { nome: "Urgente", texto: "Atendimento com prioridade" },
-  Verde: { nome: "Pouco urgente", texto: "Atendimento por ordem de chegada" },
-  Azul: { nome: "Não urgente", texto: "Pode aguardar com segurança" },
-  Branco: { nome: "Orientação", texto: "Atendimento simples" },
-  "Sem cor": { nome: "Ainda sem classificação", texto: "Aguardando avaliação da equipe" },
-};
 const horaSP = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
+const pessoas = (n: number) => (n === 1 ? "pessoa" : "pessoas");
 
 const PUBLIC_ORIGIN = "https://surgical-focus-dashboard.lovable.app";
 
@@ -66,9 +43,9 @@ function ShareLink() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
-  return <button type="button" onClick={share} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground shadow-card hover:bg-accent">
+  return <button type="button" onClick={share} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-card hover:bg-accent sm:h-11 sm:w-auto">
     {copied ? <Check className="h-4 w-4 text-success" /> : <Link2 className="h-4 w-4" />}
-    <span aria-live="polite">{copied ? "Link copiado" : "Copiar link para compartilhar"}</span>
+    <span aria-live="polite">{copied ? "Link copiado" : "Copiar link"}</span>
   </button>;
 }
 
@@ -80,60 +57,94 @@ function PaPage() {
 
 function PaOverview() {
   const { data, isPending, isError } = usePaPublico();
-  const header = <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
+  const header = <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <div className="min-w-0">
-      <p className="text-xs font-bold uppercase tracking-wider text-primary">Pronto atendimento · Maternidade em Foco</p>
-      <h1 className="mt-1 text-3xl font-extrabold leading-tight tracking-tight text-foreground md:text-4xl">Painel para pacientes</h1>
+      <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary sm:text-xs"><Stethoscope className="h-3.5 w-3.5" />Pronto atendimento · Maternidade em Foco</p>
+      <h1 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl xl:text-5xl">Painel para pacientes</h1>
       <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5 font-semibold text-success-strong"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />{data ? `Atualizado às ${horaSP(data.atualizadoEm)}` : "Carregando"}</span><span aria-hidden>·</span><span>Atualiza automaticamente</span></p>
     </div>
-    <div className="flex shrink-0 flex-wrap items-center gap-2"><ShareLink /><Link to="/painel-pacientes/tv" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card hover:bg-primary/90"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>
+    <div className="grid shrink-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center"><ShareLink /><Link to="/painel-pacientes/tv" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card hover:bg-primary/90 sm:h-11 sm:w-auto"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>
   </div>;
   if (isPending) return <PageSkeleton />;
   if (!data) return <div className="space-y-5">{header}<DataError /></div>;
   const pa = !data.aguardando ? data.pa : null;
   if (!pa?.disponivel) return <div className="space-y-5">{header}{isError && <DataError />}<div role="status" className="flex items-center gap-2 border-y border-border py-6 text-sm text-muted-foreground"><Clock3 className="h-4 w-4 shrink-0" />{data.aguardando ? "Aguardando o primeiro envio do PA" : "PA indisponível"}</div></div>;
+
   const t = pa.totais;
-  const completedPercent = t.total > 0 && t.finalizados !== null ? Math.round(t.finalizados / t.total * 100) : null;
-  const show = (n: number | null) => n === null ? "Poucas pessoas" : n;
+  const delayed = t.foraSla > 0;
+  const steps = [
+    { label: "Aguardando", desc: "Esperando ser chamada", value: t.aguardando, icon: Hourglass, tone: "text-warning-strong", border: "border-warning", surface: "bg-surface-risk-orange", bar: "bg-warning" },
+    { label: "Em atendimento", desc: "Sendo atendida agora", value: t.emCurso, icon: Stethoscope, tone: "text-cleaning-strong", border: "border-cleaning", surface: "bg-surface-risk-blue", bar: "bg-cleaning" },
+    { label: "Já atendidas", desc: "Atendimento concluído", value: t.finalizados, icon: CheckCircle2, tone: "text-success-strong", border: "border-success", surface: "bg-surface-risk-green", bar: "bg-success" },
+  ];
+  const risks = pa.riscos.filter((r) => MAIN_RISKS.includes(r.cor) || r.quantidade === null || r.quantidade > 0);
+  const riskTotal = pa.riscos.reduce((sum, r) => sum + (r.quantidade ?? 0), 0);
+  const hasHidden = pa.riscos.some((r) => r.quantidade === null) || steps.some((s) => s.value === null);
+
   return <div className="min-w-0 space-y-6 md:space-y-8">
     {header}
     {isError && <DataError />}
-    <div className="flex items-center gap-2 border-l-2 border-success bg-surface-positive px-3 py-3 text-xs font-semibold text-success-strong"><ShieldCheck className="h-4 w-4 shrink-0" />Página somente para visualização · Nenhum nome ou dado pessoal é mostrado</div>
-    <section aria-label="Resumo do PA" className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-      {[{ label: "Pessoas no pronto atendimento", value: t.total, icon: Users, panel: "border-l-primary bg-card", tone: "text-foreground" },
-        { label: "Aguardando atendimento", value: t.aguardando, icon: Hourglass, panel: "border-l-warning bg-surface-risk-orange", tone: "text-warning-strong" },
-        { label: "Sendo atendidas agora", value: t.emCurso, icon: Stethoscope, panel: "border-l-cleaning bg-surface-risk-blue", tone: "text-cleaning-strong" },
-        { label: "Já atendidas", value: t.finalizados, icon: CheckCircle2, panel: "border-l-success bg-surface-risk-green", tone: "text-success-strong" }].map((c) => (
-        <article key={c.label} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", c.panel)}>
-          <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">{c.label}</p><p className={cn("mt-1 font-extrabold tabular-nums", c.tone, c.value === null ? "text-xl" : "text-3xl")}>{show(c.value)}</p></div><c.icon className={cn("mt-1 h-5 w-5 shrink-0", c.tone)} /></div>
-        </article>
-      ))}
 
-      <div className={cn("col-span-2 min-w-0 rounded-md border border-l-8 p-4 shadow-card sm:col-span-1", t.foraSla > 0 ? "border-critical bg-surface-risk-red" : "border-border bg-card")}>
-        <div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-muted-foreground">Esperando mais que o previsto</p><p className={cn("mt-1 text-3xl font-extrabold tabular-nums", t.foraSla > 0 ? "text-critical-strong" : "text-foreground")}>{t.foraSla}</p></div><AlertTriangle className={cn("mt-1 h-5 w-5 shrink-0", t.foraSla > 0 ? "text-critical-strong" : "text-muted-foreground")} /></div>
+    <div className={cn("flex items-center gap-4 rounded-2xl border-2 border-l-8 bg-card p-4 shadow-card sm:p-6", delayed ? "border-warning" : "border-success")}>
+      {delayed ? <AlertTriangle className="h-10 w-10 shrink-0 text-warning-strong sm:h-14 sm:w-14" /> : <CheckCircle2 className="h-10 w-10 shrink-0 text-success-strong sm:h-14 sm:w-14" />}
+      <div className="min-w-0">
+        <p className={cn("text-xl font-extrabold leading-tight sm:text-2xl xl:text-3xl", delayed ? "text-warning-strong" : "text-success-strong")}>{delayed ? "Alguns atendimentos podem levar mais tempo" : "Atendimentos dentro do tempo previsto"}</p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-base">{delayed ? `${t.foraSla} ${pessoas(t.foraSla)} esperando mais do que o previsto. A equipe está priorizando esses casos. Se precisar de ajuda, procure a recepção.` : "Ninguém está esperando além do tempo previsto para o seu nível de urgência."}</p>
       </div>
+    </div>
 
+    <section aria-labelledby="flow-title" className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <h2 id="flow-title" className="text-xl font-bold sm:text-2xl">Como está o atendimento agora</h2>
+        <p className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm font-semibold shadow-card"><Users className="h-4 w-4 text-primary" />{t.total} {pessoas(t.total)} no pronto atendimento</p>
+      </div>
+      <div className="flex flex-col items-stretch gap-2 md:flex-row md:gap-0">
+        {steps.map((step, i) => (
+          <div key={step.label} className="flex min-w-0 flex-1 flex-col items-stretch md:flex-row md:items-center">
+            <article className={cn("min-w-0 flex-1 rounded-2xl border-2 border-t-8 p-4 shadow-card sm:p-5", step.border, step.surface)}>
+              <div className="flex items-center justify-between gap-2">
+                <p className={cn("flex items-center gap-2 text-base font-bold sm:text-lg", step.tone)}><step.icon className="h-6 w-6 shrink-0" /><span className="font-mono text-xs opacity-70">{i + 1}</span>{step.label}</p>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">{step.desc}</p>
+              <p className={cn("mt-3 font-extrabold tabular-nums leading-none", step.tone, step.value === null ? "text-2xl" : "text-5xl sm:text-6xl")}>{step.value === null ? "Poucas pessoas" : step.value}</p>
+              {step.value !== null && <p className="mt-1 text-sm font-medium text-muted-foreground">{pessoas(step.value)}</p>}
+              {step.value !== null && <PeopleRow count={step.value} className={cn("mt-3", step.tone)} />}
+            </article>
+            {i < steps.length - 1 && (
+              <span aria-hidden className="grid place-items-center py-1 text-muted-foreground md:px-1 md:py-0">
+                <ChevronDown className="h-6 w-6 md:hidden" /><ChevronRight className="hidden h-7 w-7 md:block" />
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <StackBar label={`Proporção: ${steps.map((s) => `${s.label} ${s.value ?? 0}`).join(", ")}`} parts={steps.map((s) => ({ name: s.label, value: s.value ?? 0, className: s.bar }))} />
     </section>
-    {completedPercent !== null && <p className="-mt-2 text-sm text-muted-foreground">{completedPercent}% das pessoas desta atualização já foram atendidas.</p>}
+
     <section aria-labelledby="risk-title" className="min-w-0 space-y-4 border-t border-border pt-6">
-      <h2 id="risk-title" className="text-lg font-bold">Atendimento por urgência</h2>
-      <p className="max-w-3xl text-sm leading-6 text-muted-foreground">As pessoas são atendidas pela <strong className="text-foreground">urgência do caso</strong>, não pela ordem de chegada. Quem está mais grave é atendido primeiro. Cada cor indica o nível de urgência definido pela equipe de saúde.</p>
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">{pa.riscos.map((risk) => <article key={risk.cor} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", riskPanel[risk.cor])}>
-        <h3 className="flex min-w-0 flex-wrap items-center gap-x-2 text-sm font-bold"><span className={cn("h-3 w-3 shrink-0 rounded-full", riskDot[risk.cor])} />{risk.cor}<span className="font-medium opacity-90">· {riskInfo[risk.cor].nome}</span></h3>
-        <p className="mt-1 text-xs opacity-90">{riskInfo[risk.cor].texto}</p>
-        <p className={cn("mt-3 font-extrabold tabular-nums", risk.quantidade === null ? "text-xl" : "text-3xl")}>{risk.quantidade === null ? "Poucas pessoas" : risk.quantidade}</p>
-        <p className="mt-1 text-xs opacity-80">{risk.quantidade === null ? "Número oculto para proteger a privacidade" : risk.quantidade === 1 ? "pessoa" : "pessoas"}</p>
-      </article>)}</div>
-      <p className="text-xs leading-5 text-muted-foreground">Quando há de 1 a 4 pessoas em um grupo, o número não é mostrado, para que ninguém possa ser identificado.</p>
-    </section>
-    <section aria-label="Orientação" className="flex items-start gap-3 rounded-md border border-l-8 border-primary bg-card px-4 py-4 text-sm leading-6"><Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><p><strong>Se o seu estado piorar enquanto aguarda, avise imediatamente a equipe de classificação.</strong> O atendimento é feito pela gravidade do caso, não pela ordem de chegada.</p></section>
-    <section aria-labelledby="attention-title" className="border-t border-border pt-6">
-      <h2 id="attention-title" className="text-lg font-bold">Tempo de espera</h2>
-      <div className={cn("mt-3 flex items-start gap-3 rounded-md border border-l-8 px-4 py-5", t.foraSla > 0 ? "border-warning bg-surface-risk-orange text-warning-strong" : "border-success bg-surface-risk-green text-success-strong")}>
-        {t.foraSla > 0 ? <AlertTriangle className="mt-0.5 h-7 w-7 shrink-0" /> : <CheckCircle2 className="mt-0.5 h-7 w-7 shrink-0" />}
-        <div className="min-w-0"><p className="text-lg font-extrabold leading-7">{t.foraSla > 0 ? `${t.foraSla} pessoas esperando mais do que o previsto` : "Tempos de espera dentro do previsto"}</p><p className="mt-1 text-sm leading-6">{t.foraSla > 0 ? "A equipe do pronto atendimento está priorizando esses casos." : "Ninguém está esperando além do tempo previsto para o seu nível de urgência."}</p></div>
+      <div>
+        <h2 id="risk-title" className="text-xl font-bold sm:text-2xl">Atendimento por urgência</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">As pessoas são atendidas pela <strong className="text-foreground">gravidade do caso</strong>, não pela ordem de chegada. Cada cor mostra o nível de urgência definido pela equipe de saúde.</p>
       </div>
+      <StackBar label="Distribuição por urgência" parts={pa.riscos.map((r) => ({ name: RISKS[r.cor].nome, value: r.quantidade ?? 0, className: RISKS[r.cor].bar }))} />
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {risks.map((risk) => {
+          const info = RISKS[risk.cor];
+          const share = risk.quantidade !== null && riskTotal > 0 ? Math.round(risk.quantidade / riskTotal * 100) : null;
+          return <article key={risk.cor} className={cn("min-w-0 rounded-2xl border-2 border-t-8 p-4 shadow-card", info.border, info.surface)}>
+            <h3 className={cn("flex items-center gap-2 text-base font-bold", info.tone)}><info.icon className="h-6 w-6 shrink-0" />{info.nome}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground"><span className="font-semibold">{risk.cor}</span> · {info.texto}</p>
+            <p className={cn("mt-3 font-extrabold tabular-nums leading-none", info.tone, risk.quantidade === null ? "text-xl" : "text-5xl")}>{risk.quantidade === null ? "Poucas pessoas" : risk.quantidade}</p>
+            <p className="mt-1 text-xs font-medium text-muted-foreground">{risk.quantidade === null ? "Número oculto por privacidade" : `${pessoas(risk.quantidade)}${share !== null ? ` · ${share}% do total` : ""}`}</p>
+            {risk.quantidade !== null && <PeopleRow count={risk.quantidade} max={8} className={cn("mt-3", info.tone)} />}
+          </article>;
+        })}
+      </div>
+      {hasHidden && <p className="text-xs leading-5 text-muted-foreground">Quando há de 1 a 4 pessoas em um grupo, o número não é mostrado, para que ninguém possa ser identificado.</p>}
     </section>
 
+    <section aria-label="Orientação" className="flex items-start gap-3 rounded-2xl border-2 border-l-8 border-primary bg-card px-4 py-4 text-sm leading-6 shadow-card sm:text-base"><Info className="mt-0.5 h-6 w-6 shrink-0 text-primary" /><p><strong>Se o seu estado piorar enquanto aguarda, avise imediatamente a equipe de classificação.</strong> O atendimento é feito pela gravidade do caso, não pela ordem de chegada.</p></section>
+
+    <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-success-strong" />Página somente para visualização · Nenhum nome ou dado pessoal é mostrado</p>
   </div>;
 }
