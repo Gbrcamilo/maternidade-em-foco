@@ -10,6 +10,6 @@ export const Route = createFileRoute("/")({
     { name: "twitter:card", content: "summary_large_image" },
   ] }),
   beforeLoad: () => {
-    throw redirect({ to: "/pa" });
+    throw redirect({ to: "/painel-pacientes" });
   },
 });

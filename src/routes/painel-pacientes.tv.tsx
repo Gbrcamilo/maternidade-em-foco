@@ -10,6 +10,10 @@ export const Route = createFileRoute("/painel-pacientes/tv")({
     { title: "Painel TV — Maternidade em Foco" },
     { name: "description", content: "Painel de sala de espera do pronto atendimento materno, com indicadores agregados e sem identificação de pacientes." },
     { name: "robots", content: "noindex" },
+    { property: "og:title", content: "Painel TV — Maternidade em Foco" },
+    { property: "og:description", content: "Indicadores agregados do PA para sala de espera, sem identificação de pacientes." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
   ] }),
   component: TvPage,
 });

@@ -17,3 +17,9 @@
 - [x] Colorir cartões de resumo, fluxo e risco com fundos próprios de cada classificação.
 - [x] Ampliar e destacar o aviso de tempo de espera, no painel e no modo TV.
 - [x] Conferir leitura em TV, tablet e celular sem rolagem lateral indevida.
+
+# Acesso externo seguro
+- [ ] Isolar as consultas públicas e bloquear consultas individuais sem autorização.
+- [ ] Revisar respostas, segurança do navegador, IA e dependências.
+- [ ] Validar o link público e entregar as instruções de atualização.
+- [ ] Configurar o primeiro gestor autorizado — aguarda identificação do responsável.

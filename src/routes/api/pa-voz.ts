@@ -6,6 +6,10 @@ export const Route = createFileRoute("/api/pa-voz")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const { isManagerRequest } = await import("@/lib/manager-request.server");
+        if (!await isManagerRequest(request)) {
+          return Response.json({ erro: "Acesso restrito aos gestores autorizados." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+        }
         const origin = request.headers.get("origin");
         if (origin && origin !== new URL(request.url).origin) {
           return Response.json({ erro: "Solicitação não autorizada." }, { status: 403 });
@@ -21,7 +25,7 @@ export const Route = createFileRoute("/api/pa-voz")({
         } catch {
           return Response.json({ erro: "Pedido inválido." }, { status: 400 });
         }
-        if (!Number.isFinite(foraSla) || foraSla <= 0) {
+        if (!Number.isInteger(foraSla) || foraSla <= 0 || foraSla > 1000000) {
           return Response.json({ erro: "Nada a anunciar." }, { status: 400 });
         }
         const { buildAnnouncement, requestSpeech } = await import("@/lib/speech.server");
@@ -30,7 +34,7 @@ export const Route = createFileRoute("/api/pa-voz")({
           status: upstream.status,
           headers: {
             "Content-Type": upstream.headers.get("Content-Type") ?? "text/event-stream",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-store",
           },
         });
       },

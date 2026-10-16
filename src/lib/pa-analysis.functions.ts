@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { aggregateSchema } from "./pa-analysis-schema";
+import { requireManager } from "./manager-access";
 
 export const analyzePa = createServerFn({ method: "POST" })
+  .middleware([requireManager])
   .inputValidator((input: unknown) => aggregateSchema.parse(input))
   .handler(async ({ data }) => {
     setResponseHeader("Cache-Control", "no-store");

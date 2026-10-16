@@ -1,4 +1,5 @@
 import { createParser } from "eventsource-parser";
+import { supabase } from "@/integrations/supabase/client";
 
 function decodePCM(pending: Uint8Array, incoming: Uint8Array) {
   const bytes = new Uint8Array(pending.length + incoming.length);
@@ -22,9 +23,11 @@ export async function playPaAnnouncement(foraSla: number): Promise<void> {
   let playback: Promise<void> = Promise.resolve();
   try {
     if (context.state === "suspended") await context.resume();
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw new Error("Acesso restrito aos gestores autorizados.");
     const response = await fetch("/api/pa-voz", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` },
       body: JSON.stringify({ foraSla }),
     });
     if (!response.ok || !response.body) throw new Error(`Falha no aviso de voz: ${response.status}`);
