@@ -35,23 +35,20 @@ export const listarGestores = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<GestorRow[]> => {
     setResponseHeader("Cache-Control", "private, no-store");
     await requireAdmin(context.userId);
-    const { listAccounts, pickAdminId } = await import("./manager-policy.server");
+    const { listAccounts, isAdminAccount } = await import("./manager-policy.server");
     const accounts = await listAccounts();
-    const adminId = pickAdminId(accounts);
-    return accounts
-      .map((u): GestorRow => {
-        const flag = u.app_metadata?.["gestor"];
-        return {
-          id: u.id,
-          email: u.email ?? "(sem e-mail)",
-          criadoEm: u.created_at,
-          confirmado: !!u.email_confirmed_at,
-          status: flag === true ? "aprovado" : flag === false ? "bloqueado" : "pendente",
-          admin: u.id === adminId,
-        };
-      })
-      .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
-      .slice(0, 200);
+    const rows = await Promise.all(accounts.map(async (u): Promise<GestorRow> => {
+      const flag = u.app_metadata?.["gestor"];
+      return {
+        id: u.id,
+        email: u.email ?? "(sem e-mail)",
+        criadoEm: u.created_at,
+        confirmado: !!u.email_confirmed_at,
+        status: flag === true ? "aprovado" : flag === false ? "bloqueado" : "pendente",
+        admin: await isAdminAccount(u),
+      };
+    }));
+    return rows.sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)).slice(0, 200);
   });
 
 /** Aprova ou bloqueia o acesso de uma conta aos dados dos pacientes. Só o administrador. */
