@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { AlertTriangle, CheckCircle2, Clock3, Download, Hourglass, Search, Stethoscope, Users, RotateCcw, SearchX, X, SlidersHorizontal } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/pa")({
     { property: "og:description", content: "Tempo de espera do pronto atendimento obstétrico por classificação de risco." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "robots", content: "noindex, nofollow" },
   ] }),
   component: PaPage,
 });
@@ -39,6 +40,9 @@ function defaultSort(a: PaPaciente, b: PaPaciente) {
 }
 
 function PaPage() {
+  const { data, isPending } = usePa();
+  if (isPending) return <PageSkeleton />;
+  if (!data) return <section className="space-y-4 py-8"><PageHeader title="Acesso restrito aos gestores" subtitle="O acesso às informações individuais exige autorização. Solicite a configuração do seu acesso ao responsável pelo aplicativo." /><Button asChild><Link to="/painel-pacientes">Abrir painel para pacientes</Link></Button></section>;
   return <><PaDataPage /><PaAnalysis /></>;
 }
 
@@ -87,7 +91,7 @@ function PaDataPage() {
 
   const exportCsv = () => {
     const head = ["Senha", "Paciente", "Atendimento", "Especialidade", "Risco", "Situação", "Chegada", "Espera p/ classificação", "Espera p/ médico", "Tempo total", "SLA"];
-    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const esc = (v: string) => `"${(/^[\s]*[=+@\-\t\r]/.test(v) ? "'" + v : v).replace(/"/g, '""')}"`;
     const lines = [head, ...rows.map((p) => [p.senha, p.paciente, p.atendimento, p.especialidade, p.cor, p.situacao, p.chegada, p.esperaClassif, p.esperaAtendMed, p.tempoTotal, slaText(p)])].map((r) => r.map(esc).join(";"));
     const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);

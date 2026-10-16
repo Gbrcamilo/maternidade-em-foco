@@ -15,6 +15,7 @@ export const Route = createFileRoute("/painel-pacientes")({
     { property: "og:description", content: "Acompanhamento operacional do PA com totais e distribuição de risco, sem registros individuais." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "robots", content: "noindex, nofollow" },
   ] }),
   component: PaPage,
 });
