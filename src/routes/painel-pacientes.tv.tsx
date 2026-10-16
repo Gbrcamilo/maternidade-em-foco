@@ -33,6 +33,11 @@ const riskPanel: Record<CorRisco, string> = {
   "Sem cor": "border-muted-foreground bg-surface-risk-grey text-muted-foreground",
 };
 
+const riskInfo: Record<CorRisco, { nome: string }> = {
+  Vermelho: { nome: "Emergência" }, Laranja: { nome: "Muito urgente" }, Amarelo: { nome: "Urgente" },
+  Verde: { nome: "Pouco urgente" }, Azul: { nome: "Não urgente" }, Branco: { nome: "Orientação" }, "Sem cor": { nome: "Sem classificação" },
+};
+
 const horaSP = (d: Date | string) => new Date(d).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
 
 function useClock() {
@@ -95,10 +100,10 @@ function TvPage() {
         {data && !isError && pa?.disponivel && (() => {
           const t = pa.totais;
           const cards = [
-            { label: "Aguardando", value: t.aguardando, icon: Hourglass, panel: "border-l-warning bg-surface-risk-orange", tone: "text-warning-strong" },
-            { label: "Em atendimento", value: t.emCurso, icon: Stethoscope, panel: "border-l-cleaning bg-surface-risk-blue", tone: "text-cleaning-strong" },
-            { label: "Finalizados", value: t.finalizados, icon: CheckCircle2, panel: "border-l-success bg-surface-risk-green", tone: "text-success-strong" },
-            { label: "Total de pacientes", value: t.total, icon: Users, panel: "border-l-primary bg-card", tone: "text-foreground" },
+            { label: "Aguardando atendimento", value: t.aguardando, icon: Hourglass, panel: "border-l-warning bg-surface-risk-orange", tone: "text-warning-strong" },
+            { label: "Sendo atendidas agora", value: t.emCurso, icon: Stethoscope, panel: "border-l-cleaning bg-surface-risk-blue", tone: "text-cleaning-strong" },
+            { label: "Já atendidas", value: t.finalizados, icon: CheckCircle2, panel: "border-l-success bg-surface-risk-green", tone: "text-success-strong" },
+            { label: "Pessoas no pronto atendimento", value: t.total, icon: Users, panel: "border-l-primary bg-card", tone: "text-foreground" },
           ];
           return (
             <>
@@ -106,7 +111,7 @@ function TvPage() {
                 {cards.map((c) => (
                   <article key={c.label} className={cn("rounded-lg border border-border border-l-8 p-5 shadow-card xl:p-7", c.panel)}>
                     <div className="flex items-center gap-2 text-sm font-bold text-foreground xl:text-lg"><c.icon className={cn("h-5 w-5 shrink-0 xl:h-6 xl:w-6", c.tone)} />{c.label}</div>
-                    <p className={cn("mt-3 font-extrabold tabular-nums", c.tone, "text-6xl xl:text-7xl")}>{c.value}</p>
+                    <p className={cn("mt-3 font-extrabold tabular-nums", c.tone, c.value === null ? "text-3xl xl:text-4xl" : "text-6xl xl:text-7xl")}>{c.value === null ? "Poucas pessoas" : c.value}</p>
                   </article>
                 ))}
               </section>
@@ -117,27 +122,27 @@ function TvPage() {
                   : <CheckCircle2 className="h-9 w-9 shrink-0 xl:h-12 xl:w-12" />}
                 <div className="min-w-0">
                   <p className="text-2xl font-extrabold leading-tight xl:text-4xl">
-                    {t.foraSla > 0 ? `${t.foraSla} pacientes com tempo de espera acima do previsto` : "Tempos de espera dentro do previsto"}
+                    {t.foraSla > 0 ? `${t.foraSla} pessoas esperando mais do que o previsto` : "Tempos de espera dentro do previsto"}
                   </p>
                   <p className="mt-1 text-base leading-6 xl:text-lg">
                     {t.foraSla > 0
                       ? "A equipe do pronto atendimento está priorizando esses casos."
-                      : "Nenhum paciente acima do tempo previsto para a classificação de risco informada."}
+                      : "Ninguém está esperando além do tempo previsto para o seu nível de urgência."}
                   </p>
                 </div>
               </div>
 
               <section aria-label="Distribuição por risco" className="rounded-lg border border-border bg-card p-5 shadow-card xl:p-7">
-                <h2 className="text-lg font-bold xl:text-2xl">Distribuição por classificação de risco</h2>
+                <h2 className="text-lg font-bold xl:text-2xl">Atendimento por urgência: quem está mais grave é atendido primeiro</h2>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7 xl:gap-4">
                   {pa.riscos.map((r) => (
                     <div key={r.cor} className={cn("min-w-0 rounded-md border border-l-8 p-4", riskPanel[r.cor])}>
-                      <p className="flex items-center gap-2 text-sm font-bold xl:text-lg"><span className={cn("h-3.5 w-3.5 shrink-0 rounded-full", riskDot[r.cor])} />{r.cor}</p>
-                      <p className={cn("mt-2 font-extrabold tabular-nums", r.quantidade === null ? "text-base opacity-80" : "text-5xl xl:text-6xl")}>{r.quantidade === null ? "Protegido" : r.quantidade}</p>
+                      <p className="flex items-center gap-2 text-sm font-bold xl:text-lg"><span className={cn("h-3.5 w-3.5 shrink-0 rounded-full", riskDot[r.cor])} />{r.cor} <span className="font-medium opacity-90">· {riskInfo[r.cor].nome}</span></p>
+                      <p className={cn("mt-2 font-extrabold tabular-nums", r.quantidade === null ? "text-base opacity-80" : "text-5xl xl:text-6xl")}>{r.quantidade === null ? "Poucas pessoas" : r.quantidade}</p>
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-muted-foreground">Contagens de 1 a 4 por risco são protegidas para reduzir a identificação de grupos pequenos.</p>
+                <p className="mt-3 text-xs text-muted-foreground">Quando há de 1 a 4 pessoas em um grupo, o número não é mostrado, para proteger a privacidade.</p>
               </section>
             </>
           );

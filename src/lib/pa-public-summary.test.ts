@@ -20,6 +20,12 @@ describe("Public PA summary", () => {
     assert.deepEqual(projectPaSummary(source).riscos.slice(0, 3).map((r) => r.quantidade), [null, null, 20]);
     assert.equal(projectPaSummary(source).riscos[4]?.quantidade, 0);
   });
+  it("hides small stage counts and a complementary value so they cannot be derived from the total", () => {
+    const t = projectPaSummary({ ...source, totais: { ...source.totais, total: 16, aguardando: 5, emCurso: 2, finalizados: 9, porCor: { Verde: 16 } } }).totais;
+    assert.deepEqual([t.aguardando, t.emCurso, t.finalizados], [null, null, 9]);
+    const u = projectPaSummary({ ...source, totais: { ...source.totais, total: 30, aguardando: 20, emCurso: 3, finalizados: 7, porCor: { Verde: 30 } } }).totais;
+    assert.deepEqual([u.aguardando, u.emCurso, u.finalizados], [20, null, null]);
+  });
   it("rejects text in aggregate counters", () => {
     assert.throws(() => projectPaSummary({ ...source, totais: { ...source.totais, total: "PRIVATE_NAME" } }));
   });
