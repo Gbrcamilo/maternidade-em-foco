@@ -72,7 +72,7 @@ export function usePaPublico() {
 
 /** Minutos em texto simples: "45 min", "3h33". */
 export function fmtEspera(min: number | null | undefined) {
-  if (min == null || Number.isNaN(min)) return "—";
+  if (min == null || Number.isNaN(min)) return "Sem espera";
   const m = Math.round(min);
   if (m < 60) return `${m} min`;
   return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}`;

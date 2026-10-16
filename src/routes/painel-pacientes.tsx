@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Hourglass, Info, Link2, MonitorPlay, Pause, Play, ShieldCheck, Stethoscope, Timer, Users } from "lucide-react";
-import { DataError, PageSkeleton, fmtEspera, setRefreshPaused, useRefreshPaused, usePaPublico } from "@/lib/use-painel";
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Hourglass, Info, Link2, MonitorPlay, ShieldCheck, Stethoscope, Timer } from "lucide-react";
+import { DataError, PageSkeleton, fmtEspera, usePaPublico } from "@/lib/use-painel";
 import { Faq } from "@/components/faq";
 import { PeopleRow, StackBar } from "@/components/people-icons";
 import { RISKS, MAIN_RISKS } from "@/lib/risk-meta";
@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/painel-pacientes")({
   head: () => ({ meta: [
-    { title: "Painel para pacientes — Maternidade em Foco" },
+    { title: "Painel para pacientes · Maternidade em Foco" },
     { name: "description", content: "Indicadores agregados do pronto atendimento materno, sem identificação de pacientes." },
-    { property: "og:title", content: "Painel para pacientes — Maternidade em Foco" },
+    { property: "og:title", content: "Painel para pacientes · Maternidade em Foco" },
     { property: "og:description", content: "Acompanhamento operacional do PA com totais e distribuição de risco, sem registros individuais." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
@@ -58,12 +58,11 @@ function PaPage() {
 
 function PaOverview() {
   const { data, isPending, isError } = usePaPublico();
-  const paused = useRefreshPaused();
   const header = <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <div className="min-w-0">
       <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary sm:text-xs"><Stethoscope className="h-3.5 w-3.5" />Pronto atendimento · Maternidade em Foco</p>
       <h1 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl xl:text-5xl">Painel para pacientes</h1>
-      <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5 font-semibold text-success-strong"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />{data ? `Atualizado às ${horaSP(data.atualizadoEm)}` : "Carregando"}</span><span aria-hidden>·</span><span>{paused ? "Atualização pausada" : "Atualiza a cada 15 segundos"}</span><button type="button" onClick={() => setRefreshPaused(!paused)} className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground hover:bg-accent">{paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}{paused ? "Retomar" : "Pausar"}</button></p>
+      <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5 font-semibold text-success-strong"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />{data ? `Atualizado às ${horaSP(data.atualizadoEm)}` : "Carregando"}</span><span aria-hidden>·</span><span>Atualiza a cada 15 segundos</span></p>
     </div>
     <div className="grid shrink-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center"><ShareLink /><Link to="/painel-pacientes/tv" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card hover:bg-primary/90 sm:h-11 sm:w-auto"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>
   </div>;
@@ -99,7 +98,6 @@ function PaOverview() {
     <section aria-labelledby="flow-title" className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <h2 id="flow-title" className="text-xl font-bold sm:text-2xl">Como está o atendimento agora</h2>
-        <p className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm font-semibold shadow-card"><Users className="h-4 w-4 text-primary" />{t.total} {pessoas(t.total)} no pronto atendimento</p>
       </div>
       <div className="flex flex-col items-stretch gap-2 md:flex-row md:gap-0">
         {steps.map((step, i) => (
@@ -204,7 +202,7 @@ function PaOverview() {
               <dt className="text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">{m.label}</dt>
             </div>)}
           </dl>
-          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold"><span className="inline-flex items-center gap-1.5"><Timer className="h-4 w-4 text-primary" />Maior espera: {s.maiorMin === null ? "—" : fmtEspera(s.maiorMin)}</span>{s.foraSla !== null && s.foraSla > 0 && <span className="inline-flex items-center gap-1.5 text-critical-strong"><AlertTriangle className="h-4 w-4" />{s.foraSla} acima do previsto</span>}</p>
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold">{s.maiorMin !== null && <span className="inline-flex items-center gap-1.5"><Timer className="h-4 w-4 text-primary" />Maior espera: {fmtEspera(s.maiorMin)}</span>}{s.foraSla !== null && s.foraSla > 0 && <span className="inline-flex items-center gap-1.5 text-critical-strong"><AlertTriangle className="h-4 w-4" />{s.foraSla} acima do previsto</span>}</p>
         </article>)}
       </div>
     </section>}
