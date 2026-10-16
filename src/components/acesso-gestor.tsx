@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Check, Copy, KeyRound, LogOut, ShieldAlert } from "lucide-react";
+import { Hourglass, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PartnerLogos, CREDIT_TI } from "@/components/partner-logos";
 
 type Who = { id: string; email: string | null } | null;
 
@@ -36,10 +37,21 @@ export function SairButton({ className }: { className?: string }) {
   const who = useWho();
   const qc = useQueryClient();
   if (!who) return null;
-  return <Button type="button" variant="outline" size="sm" className={className} onClick={() => void signOut(() => qc.removeQueries({ queryKey: ["pa"] }))}><LogOut className="mr-1.5 h-4 w-4" />Sair</Button>;
+  return <Button type="button" variant="outline" size="sm" className={className} onClick={() => void signOut(() => { qc.removeQueries({ queryKey: ["pa"] }); qc.removeQueries({ queryKey: ["meu-acesso"] }); qc.removeQueries({ queryKey: ["gestores"] }); })}><LogOut className="mr-1.5 h-4 w-4" />Sair</Button>;
 }
 
-/** Tela mostrada em /pa quando não há acesso: entrar, criar conta ou pedir liberação. */
+/** Moldura igual à do painel público (faixa de logos e rodapé), cobrindo o menu lateral. */
+function Frame({ children }: { children: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col overflow-auto bg-background text-foreground">
+      <header className="border-b border-border bg-white shadow-sm"><div className="mx-auto w-full max-w-[1920px] px-4 py-3 md:px-6 xl:px-8"><PartnerLogos /></div></header>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center space-y-4 px-4 py-8">{children}</main>
+      <footer className="border-t border-border px-6 py-3 text-center text-xs text-muted-foreground">{CREDIT_TI}</footer>
+    </div>
+  );
+}
+
+/** Entrar / criar conta / aguardar aprovação, em uma tela simples. */
 export function AcessoGestor() {
   const who = useWho();
   const qc = useQueryClient();
@@ -48,7 +60,8 @@ export function AcessoGestor() {
   const [senha, setSenha] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ tipo: "erro" | "ok"; texto: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+
+  const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["pa"] }), qc.invalidateQueries({ queryKey: ["meu-acesso"] })]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -59,13 +72,13 @@ export function AcessoGestor() {
       const { supabase } = await import("@/integrations/supabase/client");
       if (mode === "entrar") {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
-        if (error) { setMsg({ tipo: "erro", texto: "E-mail ou senha incorretos." }); return; }
-        await qc.invalidateQueries({ queryKey: ["pa"] });
+        if (error) { setMsg({ tipo: "erro", texto: /confirm/i.test(error.message) ? "Confirme seu e-mail pelo link que enviamos e tente de novo." : "E-mail ou senha incorretos." }); return; }
+        await refresh();
       } else {
         const { data, error } = await supabase.auth.signUp({ email: email.trim(), password: senha });
         if (error) { setMsg({ tipo: "erro", texto: "Não foi possível criar a conta. Confira os dados e tente novamente." }); return; }
-        if (!data.session) setMsg({ tipo: "ok", texto: "Conta criada. Enviamos um e-mail de confirmação: confirme e depois entre." });
-        else await qc.invalidateQueries({ queryKey: ["pa"] });
+        if (!data.session) { setMsg({ tipo: "ok", texto: "Conta criada. Enviamos um e-mail de confirmação: abra o link e depois entre aqui." }); setMode("entrar"); }
+        else await refresh();
       }
     } catch {
       setMsg({ tipo: "erro", texto: "Não foi possível concluir agora. Tente novamente." });
@@ -74,44 +87,29 @@ export function AcessoGestor() {
     }
   };
 
-  const copy = async (text: string) => {
-    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch { window.prompt("Copie o código abaixo:", text); }
-  };
-
-  if (who === undefined) return <p role="status" className="py-8 text-sm text-muted-foreground">Verificando acesso…</p>;
+  if (who === undefined) return <Frame><p role="status" className="text-center text-sm text-muted-foreground">Verificando acesso…</p></Frame>;
 
   if (who) {
     return (
-      <section className="mx-auto max-w-xl space-y-4 py-8">
-        <div className="flex items-start gap-3 rounded-2xl border-2 border-l-8 border-warning bg-card p-5 shadow-card">
-          <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0 text-warning-strong" />
-          <div className="min-w-0 space-y-2">
-            <h1 className="text-xl font-bold">Esta conta ainda não tem permissão</h1>
-            <p className="text-sm leading-6 text-muted-foreground">Você entrou como <strong className="text-foreground">{who.email ?? "gestor"}</strong>, mas os dados dos pacientes só são liberados para gestores autorizados.</p>
-          </div>
-        </div>
-        <div className="space-y-3 rounded-2xl border-2 border-border bg-card p-5 shadow-card">
-          <h2 className="flex items-center gap-2 text-base font-bold"><KeyRound className="h-5 w-5 text-primary" />Código de acesso desta conta</h2>
-          <p className="text-sm leading-6 text-muted-foreground">Envie este código ao responsável pelo sistema. Ele precisa incluí-lo na configuração <code className="rounded bg-muted px-1 py-0.5 text-xs">PA_MANAGER_USER_IDS</code> do aplicativo. Depois é só atualizar esta página.</p>
-          <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 break-all rounded-md bg-muted px-3 py-2 text-xs sm:text-sm">{who.id}</code>
-            <Button type="button" variant="outline" size="sm" onClick={() => void copy(who.id)}>{copied ? <Check className="mr-1.5 h-4 w-4 text-success" /> : <Copy className="mr-1.5 h-4 w-4" />}{copied ? "Copiado" : "Copiar"}</Button>
-          </div>
+      <Frame>
+        <div className="space-y-3 rounded-2xl border-2 border-l-8 border-warning bg-card p-5 shadow-card">
+          <h1 className="flex items-center gap-2 text-xl font-bold"><Hourglass className="h-6 w-6 text-warning-strong" />Aguardando aprovação</h1>
+          <p className="text-sm leading-6 text-muted-foreground">Seu cadastro (<strong className="text-foreground">{who.email ?? "gestor"}</strong>) foi recebido. Assim que o administrador aprovar, você poderá ver os dados dos pacientes. Avise-o que você pediu acesso.</p>
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button type="button" onClick={() => void qc.invalidateQueries({ queryKey: ["pa"] })}>Já foi liberado? Atualizar</Button>
+            <Button type="button" onClick={() => void refresh()}>Já fui aprovado? Atualizar</Button>
             <SairButton />
-            <Button asChild variant="ghost"><Link to="/painel-pacientes">Abrir painel para pacientes</Link></Button>
           </div>
         </div>
-      </section>
+        <div className="text-center"><Link to="/painel-pacientes" className="text-sm font-medium text-primary underline-offset-4 hover:underline">Ver o painel para pacientes</Link></div>
+      </Frame>
     );
   }
 
   return (
-    <section className="mx-auto max-w-md space-y-4 py-8">
+    <Frame>
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Acesso dos gestores</h1>
-        <p className="text-sm leading-6 text-muted-foreground">Área restrita com os dados individuais do pronto atendimento. Entre com a sua conta.</p>
+        <p className="text-sm leading-6 text-muted-foreground">Dados individuais do pronto atendimento. Entre com seu e-mail e senha.</p>
       </div>
       <form onSubmit={(e) => void submit(e)} className="space-y-4 rounded-2xl border-2 border-border bg-card p-5 shadow-card">
         <div className="space-y-1.5">
@@ -123,11 +121,11 @@ export function AcessoGestor() {
           <Input id="gestor-senha" type="password" autoComplete={mode === "entrar" ? "current-password" : "new-password"} required minLength={8} value={senha} onChange={(e) => setSenha(e.target.value)} />
         </div>
         {msg && <p role={msg.tipo === "erro" ? "alert" : "status"} className={msg.tipo === "erro" ? "text-sm font-semibold text-critical-strong" : "text-sm font-semibold text-success-strong"}>{msg.texto}</p>}
-        <Button type="submit" className="h-11 w-full" disabled={busy}>{busy ? "Aguarde…" : mode === "entrar" ? "Entrar" : "Criar conta"}</Button>
-        <button type="button" onClick={() => { setMode(mode === "entrar" ? "criar" : "entrar"); setMsg(null); }} className="w-full text-center text-sm font-medium text-primary underline-offset-4 hover:underline">{mode === "entrar" ? "Primeiro acesso? Criar conta" : "Já tenho conta. Entrar"}</button>
+        <Button type="submit" className="h-11 w-full" disabled={busy}>{busy ? "Aguarde…" : mode === "entrar" ? "Entrar" : "Pedir acesso"}</Button>
+        <button type="button" onClick={() => { setMode(mode === "entrar" ? "criar" : "entrar"); setMsg(null); }} className="w-full text-center text-sm font-medium text-primary underline-offset-4 hover:underline">{mode === "entrar" ? "Primeiro acesso? Pedir acesso" : "Já tenho conta. Entrar"}</button>
       </form>
-      <p className="text-center text-xs text-muted-foreground">Ter uma conta não libera os dados dos pacientes: o acesso é concedido só a gestores autorizados.</p>
+      <p className="text-center text-xs text-muted-foreground">O acesso é liberado pelo administrador depois do seu pedido.</p>
       <div className="text-center"><Link to="/painel-pacientes" className="text-sm font-medium text-primary underline-offset-4 hover:underline">Voltar ao painel para pacientes</Link></div>
-    </section>
+    </Frame>
   );
 }

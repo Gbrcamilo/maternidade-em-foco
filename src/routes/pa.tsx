@@ -14,6 +14,9 @@ import { cn } from "@/lib/utils";
 import { PaAnalysis } from "@/components/pa-analysis";
 import { AlertasGestorBar } from "@/lib/use-voz-sla";
 import { AcessoGestor } from "@/components/acesso-gestor";
+import { AprovacaoGestores } from "@/components/gestores-admin";
+import { getMeuAcesso } from "@/lib/gestores.functions";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/pa")({
   head: () => ({ meta: [
@@ -42,9 +45,10 @@ function defaultSort(a: PaPaciente, b: PaPaciente) {
 
 function PaPage() {
   const { data, isPending } = usePa();
+  const acesso = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso(), retry: false, enabled: !!data });
   if (isPending) return <PageSkeleton />;
   if (!data) return <AcessoGestor />;
-  return <><PaDataPage /><PaAnalysis /></>;
+  return <>{acesso.data?.admin && <AprovacaoGestores />}<PaDataPage /><PaAnalysis /></>;
 }
 
 function PaDataPage() {

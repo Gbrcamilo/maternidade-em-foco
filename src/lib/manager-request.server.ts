@@ -1,11 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
+import { isAuthorizedManager } from "./manager-policy.server";
 
 export async function isManagerRequest(request: Request): Promise<boolean> {
-  const allowed = (process.env["PA_MANAGER_USER_IDS"] ?? "").split(",").map((id) => id.trim()).filter(Boolean);
   const token = request.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1];
   const url = process.env["SUPABASE_URL"];
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
-  if (!allowed.length || !token || !url || !key) return false;
+  if (!token || !url || !key) return false;
   const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { fetch: (input, init) => {
@@ -16,5 +16,6 @@ export async function isManagerRequest(request: Request): Promise<boolean> {
     } },
   });
   const { data, error } = await client.auth.getUser(token);
-  return !error && !!data.user && allowed.includes(data.user.id);
+  if (error || !data.user) return false;
+  return isAuthorizedManager(data.user);
 }
