@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { AlertTriangle, Check, CheckCircle2, Link2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Info, Link2, Clock3, Hourglass, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
 import { PageHeader } from "@/components/app-shell";
 import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
 
@@ -108,18 +108,7 @@ function PaOverview() {
       </div>
 
     </section>
-    <section aria-labelledby="flow-title" className="min-w-0 space-y-4">
-      <h2 id="flow-title" className="text-lg font-bold">Como está o atendimento agora</h2>
-      <div className="grid min-w-0 gap-4 md:grid-cols-3">
-        {[{ label: "Aguardando atendimento", count: t.aguardando, tone: "bg-warning", panel: "border-l-warning bg-surface-risk-orange text-warning-strong", icon: Hourglass }, { label: "Sendo atendidas agora", count: t.emCurso, tone: "bg-cleaning", panel: "border-l-cleaning bg-surface-risk-blue text-cleaning-strong", icon: Stethoscope }, { label: "Já atendidas", count: t.finalizados, tone: "bg-success", panel: "border-l-success bg-surface-risk-green text-success-strong", icon: CheckCircle2 }].map((stage, i) => <article key={stage.label} className={cn("min-w-0 rounded-md border border-l-8 p-4 shadow-card", stage.panel)}>
-          <div className="flex items-center gap-2 text-sm font-bold"><span className="font-mono text-xs opacity-80">0{i + 1}</span><stage.icon className="h-4 w-4 shrink-0" />{stage.label}</div>
-          <div className="mt-3 flex items-baseline justify-between gap-2"><span className={cn("font-extrabold tabular-nums", stage.count === null ? "text-2xl" : "text-4xl")}>{show(stage.count)}</span><span className="text-xs">{stage.count === null ? "número oculto por privacidade" : "pessoas"}</span></div>
-          <div className="mt-3 flex h-3 overflow-hidden rounded bg-background/70" role="meter" aria-label={stage.label} aria-valuemin={0} aria-valuemax={Math.max(t.total, stage.count ?? 0, 1)} aria-valuenow={stage.count ?? undefined}><div className={stage.tone} style={{ width: `${t.total > 0 && stage.count !== null ? Math.min(100, stage.count / t.total * 100) : 0}%` }} /></div>
-        </article>)}
-
-      </div>
-      {completedPercent !== null && <p className="text-xs text-muted-foreground">{completedPercent}% das pessoas desta atualização já foram atendidas.</p>}
-    </section>
+    {completedPercent !== null && <p className="-mt-2 text-sm text-muted-foreground">{completedPercent}% das pessoas desta atualização já foram atendidas.</p>}
     <section aria-labelledby="risk-title" className="min-w-0 space-y-4 border-t border-border pt-6">
       <h2 id="risk-title" className="text-lg font-bold">Atendimento por urgência</h2>
       <p className="max-w-3xl text-sm leading-6 text-muted-foreground">As pessoas são atendidas pela <strong className="text-foreground">urgência do caso</strong>, não pela ordem de chegada. Quem está mais grave é atendido primeiro. Cada cor indica o nível de urgência definido pela equipe de saúde.</p>
@@ -131,6 +120,7 @@ function PaOverview() {
       </article>)}</div>
       <p className="text-xs leading-5 text-muted-foreground">Quando há de 1 a 4 pessoas em um grupo, o número não é mostrado, para que ninguém possa ser identificado.</p>
     </section>
+    <section aria-label="Orientação" className="flex items-start gap-3 rounded-md border border-l-8 border-primary bg-card px-4 py-4 text-sm leading-6"><Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><p><strong>Se o seu estado piorar enquanto aguarda, avise imediatamente a equipe de classificação.</strong> O atendimento é feito pela gravidade do caso, não pela ordem de chegada.</p></section>
     <section aria-labelledby="attention-title" className="border-t border-border pt-6">
       <h2 id="attention-title" className="text-lg font-bold">Tempo de espera</h2>
       <div className={cn("mt-3 flex items-start gap-3 rounded-md border border-l-8 px-4 py-5", t.foraSla > 0 ? "border-warning bg-surface-risk-orange text-warning-strong" : "border-success bg-surface-risk-green text-success-strong")}>
