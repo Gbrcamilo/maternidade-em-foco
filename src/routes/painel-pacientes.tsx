@@ -168,7 +168,7 @@ function PaOverview() {
     <section aria-labelledby="risk-title" className="min-w-0 space-y-4 border-t border-border pt-6">
       <div>
         <h2 id="risk-title" className="text-xl font-bold sm:text-2xl">Atendimento por urgência</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">As pessoas são atendidas pela <strong className="text-foreground">gravidade do caso</strong>, não pela ordem de chegada. Cada cor mostra o nível de urgência definido pela equipe de saúde.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">As pessoas são atendidas pela <strong className="text-foreground">gravidade do caso</strong>, não pela ordem de chegada. Cada cor mostra o nível de prioridade definido através da classificação de risco.</p>
       </div>
       <StackBar label="Distribuição por urgência" parts={pa.riscos.map((r) => ({ name: RISKS[r.cor].nome, value: r.quantidade ?? 0, className: RISKS[r.cor].bar }))} />
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
