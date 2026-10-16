@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { getPa, getPaPublico } from "./maternidade-api";
@@ -54,6 +54,26 @@ export function StaleNotice({ age, dark }: { age: number | null; dark?: boolean 
   return <span role="status" className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold", dark ? "bg-amber-500/15 text-amber-300" : "bg-surface-warning text-warning-strong")}><AlertTriangle className="h-3.5 w-3.5" />Dados desatualizados há {Math.floor(age / 60)} min</span>;
 }
 
+/** Pausa da atualização automática, compartilhada por todos os componentes da página. */
+let refreshPaused = false;
+const pauseListeners = new Set<() => void>();
+export function setRefreshPaused(value: boolean) {
+  refreshPaused = value;
+  pauseListeners.forEach((fn) => fn());
+}
+export function useRefreshPaused() {
+  return useSyncExternalStore((fn) => { pauseListeners.add(fn); return () => { pauseListeners.delete(fn); }; }, () => refreshPaused, () => false);
+}
+
 export function usePaPublico() {
-  return useQuery({ queryKey: ["pa-public-summary"], queryFn: () => getPaPublico(), refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
+  const paused = useRefreshPaused();
+  return useQuery({ queryKey: ["pa-public-summary"], queryFn: () => getPaPublico(), refetchInterval: paused ? false : REFRESH_MS, refetchIntervalInBackground: !paused });
+}
+
+/** Minutos em texto simples: "45 min", "3h33". */
+export function fmtEspera(min: number | null | undefined) {
+  if (min == null || Number.isNaN(min)) return "—";
+  const m = Math.round(min);
+  if (m < 60) return `${m} min`;
+  return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}`;
 }

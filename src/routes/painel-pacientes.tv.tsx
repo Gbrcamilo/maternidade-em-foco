@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ComponentType } from "react";
 import { AlertTriangle, CheckCircle2, Hourglass, Info, Leaf, ShieldCheck, Siren, Stethoscope, WifiOff, Wifi } from "lucide-react";
 import { PartnerLogos, CREDIT_TI } from "@/components/partner-logos";
-import { usePaPublico, useAge } from "@/lib/use-painel";
+import { usePaPublico, useAge, fmtEspera } from "@/lib/use-painel";
 import { cn } from "@/lib/utils";
 import type { CorRisco } from "@/lib/mock-data";
 
@@ -112,6 +112,12 @@ function TvPage() {
                   {delayed ? "Se precisar de ajuda, procure a recepção." : "O atendimento é feito pela gravidade do caso, não pela ordem de chegada."}
                 </p>
               </div>
+              {pa?.espera.maiorMin != null && (
+                <div className="ml-auto shrink-0 border-l-2 border-border pl-[1.6vw] text-right">
+                  <p className="text-[clamp(0.9rem,2.2vh,1.8rem)] font-bold">Maior tempo de espera</p>
+                  <p className="text-[clamp(2rem,6.5vh,5rem)] font-extrabold leading-none tabular-nums">{fmtEspera(pa.espera.maiorMin)}</p>
+                </div>
+              )}
             </div>
 
             <section aria-label="Resumo do atendimento" className="grid grid-cols-3 gap-[1.6vw]">

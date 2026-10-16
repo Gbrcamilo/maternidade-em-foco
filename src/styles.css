@@ -222,4 +222,16 @@
 @utility select-field { height:2.35rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); padding:0 2rem 0 .75rem; font-size:.8125rem; color:var(--foreground); }
 @utility timeline-line { position:relative; &::before { content:""; position:absolute; top:12px; bottom:12px; left:75px; width:2px; background:var(--border); } }
 
+/* Modo de alto contraste (botão "Contraste" da página pública): texto e bordas mais fortes. */
+:root.contrast-high {
+  --foreground: oklch(0.12 0.02 245);
+  --muted-foreground: oklch(0.28 0.02 245);
+  --border: oklch(0.4 0.03 245);
+  --success-strong: oklch(0.32 0.1 157);
+  --warning-strong: oklch(0.38 0.1 55);
+  --caution-strong: oklch(0.36 0.08 80);
+  --critical-strong: oklch(0.38 0.17 27);
+  --cleaning-strong: oklch(0.33 0.09 240);
+}
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior:auto !important; transition-duration:0.01ms !important; animation-duration:0.01ms !important; } }

@@ -14,7 +14,22 @@ describe("Public PA summary", () => {
     const summary = projectPaSummary(source);
     assert.deepEqual(summary.totais, { total: 40, aguardando: 20, emCurso: 8, finalizados: 12, foraSla: 7 });
     assert.equal(JSON.stringify(summary).includes("PRIVATE_"), false);
-    assert.deepEqual(Object.keys(summary).sort(), ["demonstrativo", "disponivel", "riscos", "totais"]);
+    assert.deepEqual(Object.keys(summary).sort(), ["demonstrativo", "disponivel", "espera", "riscos", "totais"]);
+  });
+  it("computes waiting-time aggregates without leaking row data", () => {
+    const row = (cor: string, esperaAtendMin: number, situacao = "Aguardando médico") => ({ grupo: "aguardando", cor, situacao, esperaAtendMin, esperaClassifMin: 5, slaMin: 120, paciente: "PRIVATE_NAME", senha: "PRIVATE_TICKET" });
+    const pacientes = [row("Verde", 70), row("Verde", 30), row("Azul", 213), row("Verde", 20, "Aguardando classificação"), { ...row("Verde", 999), grupo: "finalizado" }];
+    const wait = projectPaSummary({ ...source, pacientes }, { suppressSmall: false }).espera;
+    assert.equal(wait.maiorMin, 213);
+    assert.equal(wait.aguardandoMedico, 3);
+    assert.equal(wait.aguardandoClassificacao, 1);
+    const verde = wait.porCor.find((r) => r.cor === "Verde");
+    assert.deepEqual([verde?.aguardando, verde?.maiorMin, verde?.previstoMin], [3, 70, 120]);
+    assert.equal(wait.porCor.find((r) => r.cor === "Azul")?.maiorMin, null);
+    assert.equal(JSON.stringify(wait).includes("PRIVATE_"), false);
+    const hidden = projectPaSummary({ ...source, pacientes }, { suppressSmall: true }).espera;
+    assert.equal(hidden.porCor.find((r) => r.cor === "Verde")?.aguardando, null);
+    assert.equal(hidden.maiorMin, 213);
   });
   it("suppresses small risk groups while keeping zero and larger counts", () => {
     assert.deepEqual(projectPaSummary(source).riscos.slice(0, 3).map((r) => r.quantidade), [null, null, 20]);

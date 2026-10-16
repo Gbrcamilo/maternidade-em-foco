@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Hourglass, Info, Link2, MonitorPlay, ShieldCheck, Stethoscope, Users } from "lucide-react";
-import { DataError, PageSkeleton, usePaPublico } from "@/lib/use-painel";
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, Hourglass, Info, Link2, MonitorPlay, Pause, Play, ShieldCheck, Stethoscope, Timer, Users } from "lucide-react";
+import { DataError, PageSkeleton, fmtEspera, setRefreshPaused, useRefreshPaused, usePaPublico } from "@/lib/use-painel";
+import { Faq } from "@/components/faq";
 import { PeopleRow, StackBar } from "@/components/people-icons";
 import { RISKS, MAIN_RISKS } from "@/lib/risk-meta";
 import { cn } from "@/lib/utils";
@@ -57,11 +58,12 @@ function PaPage() {
 
 function PaOverview() {
   const { data, isPending, isError } = usePaPublico();
+  const paused = useRefreshPaused();
   const header = <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <div className="min-w-0">
       <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary sm:text-xs"><Stethoscope className="h-3.5 w-3.5" />Pronto atendimento · Maternidade em Foco</p>
       <h1 className="mt-2 text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl xl:text-5xl">Painel para pacientes</h1>
-      <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5 font-semibold text-success-strong"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />{data ? `Atualizado às ${horaSP(data.atualizadoEm)}` : "Carregando"}</span><span aria-hidden>·</span><span>Atualiza automaticamente</span></p>
+      <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5 font-semibold text-success-strong"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />{data ? `Atualizado às ${horaSP(data.atualizadoEm)}` : "Carregando"}</span><span aria-hidden>·</span><span>{paused ? "Atualização pausada" : "Atualiza a cada 15 segundos"}</span><button type="button" onClick={() => setRefreshPaused(!paused)} className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground hover:bg-accent">{paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}{paused ? "Retomar" : "Pausar"}</button></p>
     </div>
     <div className="grid shrink-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center"><ShareLink /><Link to="/painel-pacientes/tv" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card hover:bg-primary/90 sm:h-11 sm:w-auto"><MonitorPlay className="h-4 w-4" />Abrir na TV</Link></div>
   </div>;
@@ -71,6 +73,7 @@ function PaOverview() {
   if (!pa?.disponivel) return <div className="space-y-5">{header}{isError && <DataError />}<div role="status" className="flex items-center gap-2 border-y border-border py-6 text-sm text-muted-foreground"><Clock3 className="h-4 w-4 shrink-0" />{data.aguardando ? "Aguardando o primeiro envio do PA" : "PA indisponível"}</div></div>;
 
   const t = pa.totais;
+  const wait = pa.espera;
   const delayed = t.foraSla > 0;
   const steps = [
     { label: "Aguardando", desc: "Esperando ser chamada", value: t.aguardando, icon: Hourglass, tone: "text-warning-strong", border: "border-warning", surface: "bg-surface-risk-orange", bar: "bg-warning" },
@@ -83,7 +86,7 @@ function PaOverview() {
 
   return <div className="min-w-0 space-y-6 md:space-y-8">
     {header}
-    {isError && <DataError />}
+    {isError && <div role="alert" className="flex items-center gap-2 rounded-xl border-2 border-warning bg-surface-warning p-4 text-sm font-semibold text-warning-strong"><AlertTriangle className="h-5 w-5 shrink-0" />Não foi possível atualizar agora. Os números abaixo podem estar desatualizados; tentando novamente.</div>}
 
     <div className={cn("flex items-center gap-4 rounded-2xl border-2 border-l-8 bg-card p-4 shadow-card sm:p-6", delayed ? "border-warning" : "border-success")}>
       {delayed ? <AlertTriangle className="h-10 w-10 shrink-0 text-warning-strong sm:h-14 sm:w-14" /> : <CheckCircle2 className="h-10 w-10 shrink-0 text-success-strong sm:h-14 sm:w-14" />}
@@ -121,6 +124,49 @@ function PaOverview() {
       <StackBar label={`Proporção: ${steps.map((s) => `${s.label} ${s.value ?? 0}`).join(", ")}`} parts={steps.map((s) => ({ name: s.label, value: s.value ?? 0, className: s.bar }))} />
     </section>
 
+    <section aria-labelledby="wait-title" className="min-w-0 space-y-4 border-t border-border pt-6">
+      <div>
+        <h2 id="wait-title" className="text-xl font-bold sm:text-2xl">Tempo de espera</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">Quanto tempo as pessoas que aguardam estão esperando agora, em comparação com o tempo previsto para cada nível de urgência.</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <article className="col-span-2 rounded-2xl border-2 border-t-8 border-primary bg-card p-4 shadow-card sm:p-5 lg:col-span-1">
+          <p className="flex items-center gap-2 text-sm font-bold text-primary"><Timer className="h-5 w-5 shrink-0" />Maior tempo de espera</p>
+          <p className="mt-3 text-5xl font-extrabold leading-none tabular-nums text-foreground sm:text-6xl">{fmtEspera(wait.maiorMin)}</p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">{wait.maiorMin === null ? "Ninguém aguardando no momento" : "de quem está esperando há mais tempo agora"}</p>
+        </article>
+        <article className="rounded-2xl border-2 border-t-8 border-border bg-card p-4 shadow-card sm:p-5">
+          <p className="text-sm font-bold text-muted-foreground">Espera média</p>
+          <p className="mt-3 text-4xl font-extrabold leading-none tabular-nums text-foreground sm:text-5xl">{fmtEspera(wait.mediaMin)}</p>
+        </article>
+        <article className="rounded-2xl border-2 border-t-8 border-border bg-card p-4 shadow-card sm:p-5">
+          <p className="text-sm font-bold text-muted-foreground">Aguardando classificação</p>
+          <p className="mt-3 text-4xl font-extrabold leading-none tabular-nums text-foreground sm:text-5xl">{wait.aguardandoClassificacao ?? "Poucas"}</p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">{wait.aguardandoClassificacao === null ? "pessoas" : pessoas(wait.aguardandoClassificacao)}</p>
+        </article>
+        <article className="rounded-2xl border-2 border-t-8 border-border bg-card p-4 shadow-card sm:p-5">
+          <p className="text-sm font-bold text-muted-foreground">Aguardando médico</p>
+          <p className="mt-3 text-4xl font-extrabold leading-none tabular-nums text-foreground sm:text-5xl">{wait.aguardandoMedico ?? "Poucas"}</p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">{wait.aguardandoMedico === null ? "pessoas" : pessoas(wait.aguardandoMedico)}</p>
+        </article>
+      </div>
+      {wait.porCor.length > 0 && <ul className="space-y-3 rounded-2xl border-2 border-border bg-card p-4 shadow-card sm:p-5" aria-label="Espera por urgência">
+        {wait.porCor.map((w) => {
+          const info = RISKS[w.cor];
+          const pct = w.maiorMin !== null && w.previstoMin ? Math.min(100, Math.round(w.maiorMin / w.previstoMin * 100)) : null;
+          const over = w.maiorMin !== null && w.previstoMin !== null && w.maiorMin > w.previstoMin;
+          return <li key={w.cor} className="space-y-1.5">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+              <p className={cn("flex items-center gap-2 text-sm font-bold sm:text-base", info.tone)}><info.icon className="h-5 w-5 shrink-0" />{info.nome}<span className="text-xs font-medium text-muted-foreground">{w.aguardando === null ? "· poucas pessoas" : `· ${w.aguardando} ${pessoas(w.aguardando)}`}</span></p>
+              <p className="text-sm font-semibold tabular-nums">{w.maiorMin === null ? "Maior espera não exibida" : <>Maior espera <span className={over ? "text-critical-strong" : undefined}>{fmtEspera(w.maiorMin)}</span></>}{w.previstoMin ? <span className="font-medium text-muted-foreground"> · previsto até {fmtEspera(w.previstoMin)}</span> : null}</p>
+            </div>
+            {pct !== null && <div role="img" aria-label={`${pct}% do tempo previsto`} className="h-3 w-full overflow-hidden rounded-full bg-muted"><div className={cn("h-full rounded-full", over ? "bg-critical" : info.bar)} style={{ width: `${pct}%` }} /></div>}
+          </li>;
+        })}
+      </ul>}
+      <p className="text-xs leading-5 text-muted-foreground">Os tempos são uma informação do momento, não uma promessa de horário. Casos mais graves podem ser atendidos antes.</p>
+    </section>
+
     <section aria-labelledby="risk-title" className="min-w-0 space-y-4 border-t border-border pt-6">
       <div>
         <h2 id="risk-title" className="text-xl font-bold sm:text-2xl">Atendimento por urgência</h2>
@@ -144,6 +190,8 @@ function PaOverview() {
     </section>
 
     <section aria-label="Orientação" className="flex items-start gap-3 rounded-2xl border-2 border-l-8 border-primary bg-card px-4 py-4 text-sm leading-6 shadow-card sm:text-base"><Info className="mt-0.5 h-6 w-6 shrink-0 text-primary" /><p><strong>Se o seu estado piorar enquanto aguarda, avise imediatamente a equipe de classificação.</strong> O atendimento é feito pela gravidade do caso, não pela ordem de chegada.</p></section>
+
+    <Faq />
 
     <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-success-strong" />Página somente para visualização · Nenhum nome ou dado pessoal é mostrado</p>
   </div>;
