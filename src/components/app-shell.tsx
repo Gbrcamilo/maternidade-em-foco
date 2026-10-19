@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, ChevronLeft, Menu, PanelLeftClose, PanelLeftOpen, Stethoscope, UserCog, Users } from "lucide-react";
+import { Activity, ChevronLeft, Menu, PanelLeftClose, PanelLeftOpen, ShieldCheck, Stethoscope, UserCog, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PartnerLogos, CREDIT_TI } from "@/components/partner-logos";
 import { A11yToolbar } from "@/components/a11y-toolbar";
@@ -13,6 +13,7 @@ import { X } from "lucide-react";
 const items = [
   { label: "Pacientes do PA", to: "/pa", icon: Stethoscope, badge: "pa" },
   { label: "Painel para pacientes", to: "/painel-pacientes", icon: Users },
+  { label: "Gerenciar acessos", to: "/acessos", icon: ShieldCheck },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

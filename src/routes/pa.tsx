@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { PaAnalysis } from "@/components/pa-analysis";
 import { AlertasGestorBar } from "@/lib/use-voz-sla";
 import { AcessoGestor } from "@/components/acesso-gestor";
-import { AprovacaoGestores } from "@/components/gestores-admin";
 import { getMeuAcesso } from "@/lib/gestores.functions";
 import { useQuery } from "@tanstack/react-query";
 
@@ -48,7 +47,7 @@ function PaPage() {
   const acesso = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso(), retry: false, enabled: !!data });
   if (isPending) return <PageSkeleton />;
   if (!data) return <AcessoGestor />;
-  return <>{acesso.data?.admin && <AprovacaoGestores />}<PaDataPage /><PaAnalysis /></>;
+  return <>{acesso.data?.admin && <div className="mb-4"><Link to="/acessos" className="text-sm font-semibold text-primary underline-offset-4 hover:underline">Gerenciar acessos dos gestores →</Link></div>}<PaDataPage /><PaAnalysis /></>;
 }
 
 function PaDataPage() {

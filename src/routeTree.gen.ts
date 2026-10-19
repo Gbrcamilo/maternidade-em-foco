@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AcessosRouteImport } from './routes/acessos'
 import { Route as PaRouteImport } from './routes/pa'
 import { Route as PainelPacientesRouteImport } from './routes/painel-pacientes'
 import { Route as ApiPaVozRouteImport } from './routes/api/pa-voz'
@@ -18,6 +19,11 @@ import { Route as PainelPacientesTvRouteImport } from './routes/painel-pacientes
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcessosRoute = AcessosRouteImport.update({
+  id: '/acessos',
+  path: '/acessos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaRoute = PaRouteImport.update({
@@ -43,6 +49,7 @@ const PainelPacientesTvRoute = PainelPacientesTvRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acessos': typeof AcessosRoute
   '/pa': typeof PaRoute
   '/painel-pacientes': typeof PainelPacientesRouteWithChildren
   '/api/pa-voz': typeof ApiPaVozRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acessos': typeof AcessosRoute
   '/pa': typeof PaRoute
   '/painel-pacientes': typeof PainelPacientesRouteWithChildren
   '/api/pa-voz': typeof ApiPaVozRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acessos': typeof AcessosRoute
   '/pa': typeof PaRoute
   '/painel-pacientes': typeof PainelPacientesRouteWithChildren
   '/api/pa-voz': typeof ApiPaVozRoute
@@ -66,12 +75,24 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/pa' | '/painel-pacientes' | '/api/pa-voz' | '/painel-pacientes/tv'
+    | '/'
+    | '/acessos'
+    | '/pa'
+    | '/painel-pacientes'
+    | '/api/pa-voz'
+    | '/painel-pacientes/tv'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pa' | '/painel-pacientes' | '/api/pa-voz' | '/painel-pacientes/tv'
+  to:
+    | '/'
+    | '/acessos'
+    | '/pa'
+    | '/painel-pacientes'
+    | '/api/pa-voz'
+    | '/painel-pacientes/tv'
   id:
     | '__root__'
     | '/'
+    | '/acessos'
     | '/pa'
     | '/painel-pacientes'
     | '/api/pa-voz'
@@ -80,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcessosRoute: typeof AcessosRoute
   PaRoute: typeof PaRoute
   PainelPacientesRoute: typeof PainelPacientesRouteWithChildren
   ApiPaVozRoute: typeof ApiPaVozRoute
@@ -92,6 +114,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acessos': {
+      id: '/acessos'
+      path: '/acessos'
+      fullPath: '/acessos'
+      preLoaderRoute: typeof AcessosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pa': {
@@ -139,6 +168,7 @@ const PainelPacientesRouteWithChildren = PainelPacientesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcessosRoute: AcessosRoute,
   PaRoute: PaRoute,
   PainelPacientesRoute: PainelPacientesRouteWithChildren,
   ApiPaVozRoute: ApiPaVozRoute,
