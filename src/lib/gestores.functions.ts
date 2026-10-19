@@ -64,6 +64,17 @@ export const definirAcesso = createServerFn({ method: "POST" })
       throw new Error("O acesso do administrador não pode ser alterado.");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.aprovar) {
+      const { data: alvo, error: lookupError } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+      if (lookupError || !alvo.user) {
+        setResponseStatus(404);
+        throw new Error("Conta não encontrada.");
+      }
+      if (!alvo.user.email_confirmed_at) {
+        setResponseStatus(400);
+        throw new Error("O e-mail da conta ainda não foi confirmado.");
+      }
+    }
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { app_metadata: { gestor: data.aprovar } });
     if (error) {
       console.error("definirAcesso: falha ao atualizar conta");

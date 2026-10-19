@@ -51,9 +51,15 @@ export async function isAdminUser(userId: string): Promise<boolean> {
   return ok;
 }
 
-/** Gestor autorizado: aprovado pelo administrador (app_metadata.gestor), administrador, ou listado em `PA_MANAGER_USER_IDS`. */
-export async function isAuthorizedManager(user: { id: string; app_metadata?: Record<string, unknown> | null }): Promise<boolean> {
-  if (ids("PA_MANAGER_USER_IDS").includes(user.id)) return true;
-  if (user.app_metadata?.["gestor"] === true) return true;
-  return isAdminUser(user.id);
+/**
+ * Gestor autorizado: administrador, ou conta com **e-mail confirmado** aprovada pelo administrador (app_metadata.gestor),
+ * ou listada em `PA_MANAGER_USER_IDS`. Bloqueio explícito (gestor = false) vale mais que a lista fixa. Nega por padrão.
+ */
+export async function isAuthorizedManager(user: { id: string; email_confirmed_at?: string | null | undefined; app_metadata?: Record<string, unknown> | null }): Promise<boolean> {
+  if (await isAdminUser(user.id)) return true;
+  const flag = user.app_metadata?.["gestor"];
+  if (flag === false) return false;
+  if (!user.email_confirmed_at) return false;
+  if (flag === true) return true;
+  return ids("PA_MANAGER_USER_IDS").includes(user.id);
 }
