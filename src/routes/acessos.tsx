@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/app-shell";
 import { AcessoGestor } from "@/components/acesso-gestor";
 import { AprovacaoGestores } from "@/components/gestores-admin";
 import { getMeuAcesso } from "@/lib/gestores.functions";
+import { withTimeout } from "@/lib/utils";
 import { PageSkeleton } from "@/lib/use-painel";
 
 export const Route = createFileRoute("/acessos")({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/acessos")({
 });
 
 function AcessosPage() {
-  const q = useQuery({ queryKey: ["meu-acesso"], queryFn: () => getMeuAcesso(), retry: false });
+  const q = useQuery({ queryKey: ["meu-acesso"], queryFn: () => withTimeout(getMeuAcesso(), 15_000, () => { throw new Error("timeout"); }), retry: false });
   if (q.isPending) return <PageSkeleton />;
   if (q.isError || !q.data) return <AcessoGestor />;
   if (!q.data.admin) {

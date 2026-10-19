@@ -2,12 +2,12 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { getPa, getPaPublico } from "./maternidade-api";
-import { cn } from "./utils";
+import { cn, withTimeout } from "./utils";
 
 export const REFRESH_MS = 15000;
 
 export function usePa() {
-  return useQuery({ queryKey: ["pa"], queryFn: () => getPa(), retry: false, refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
+  return useQuery({ queryKey: ["pa"], queryFn: () => withTimeout(getPa(), 15_000, () => { throw new Error("timeout"); }), retry: false, refetchInterval: REFRESH_MS, refetchIntervalInBackground: true });
 }
 
 export function formatGerado(iso: string, withTime = true) {

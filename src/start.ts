@@ -5,7 +5,8 @@ import { renderErrorPage } from "./lib/error-page";
 const attachManagerAuth = createMiddleware({ type: "function" }).client(async ({ next }) => {
   if (typeof window === "undefined") return next();
   const { supabase } = await import("@/integrations/supabase/client");
-  const { data } = await supabase.auth.getSession();
+  const { withTimeout } = await import("@/lib/utils");
+  const { data } = await withTimeout(supabase.auth.getSession(), 6000, () => ({ data: { session: null } }));
   if (!data.session) return next();
   return next({ headers: { Authorization: `Bearer ${data.session.access_token}` } });
 });
