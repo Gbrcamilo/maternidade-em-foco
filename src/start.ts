@@ -6,7 +6,7 @@ const attachManagerAuth = createMiddleware({ type: "function" }).client(async ({
   if (typeof window === "undefined") return next();
   const { supabase } = await import("@/integrations/supabase/client");
   const { withTimeout } = await import("@/lib/utils");
-  const { data } = await withTimeout(supabase.auth.getSession(), 6000, () => ({ data: { session: null }, error: null as const }));
+  const { data } = await withTimeout(supabase.auth.getSession(), 6000, () => ({ data: { session: null }, error: null }));
   if (!data.session) return next();
   return next({ headers: { Authorization: `Bearer ${data.session.access_token}` } });
 });
